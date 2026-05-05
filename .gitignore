@@ -1,4 +1,4 @@
-# Documentation
+# Documentation drafts
 DATOS_EJEMPLO.md
 FIREBASE_SETUP.md
 RESUMEN.md
@@ -9,6 +9,8 @@ RESUMEN.md
 .env.local
 .env.*.local
 .env.production.local
+.env.production
+.env.development
 
 # Node modules
 node_modules/
@@ -41,10 +43,14 @@ lerna-debug.log*
 # Firebase
 .firebase/
 .firebaserc
+firebase-debug.log
 
 # Vercel
 .vercel
 .vercel/
+
+# Netlify
+.netlify
 
 # OS
 Thumbs.db
@@ -55,7 +61,6 @@ Thumbs.db
 *.backup
 *.tmp
 *.temp
-.DS_Store
 
 # Cache
 .cache/
@@ -66,12 +71,11 @@ Thumbs.db
 *.key
 *.p12
 *.jks
+serviceAccountKey.json
 
 # Local development
-.env.local.example
 notes/
 scratch/
 
-# IDE local settings
-.vscode/settings.json
-.idea/workspace.xml
+# Claude Code local settings
+.claude/settings.local.json
