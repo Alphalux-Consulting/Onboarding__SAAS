@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:8000/index.html)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__switch_browser",
+      "Bash(grep -n \"script src\" \"C:\\\\\\\\Users\\\\\\\\Yeison Andres\\\\\\\\Desktop\\\\\\\\Trabajo de EUU\\\\\\\\SAAS\\\\\\\\Saas de onboarding\\\\\\\\App\\\\\\\\dashboard.html\")",
+      "Bash(curl -s http://localhost:8000/)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\Yeison Andres\\\\Desktop\\\\Trabajo de EUU\\\\SAAS\\\\Onboarding_SAAS\\\\src\\\\pages\\\\ClientOnboarding.jsx\"\\).Count)"
+    ]
+  }
+}

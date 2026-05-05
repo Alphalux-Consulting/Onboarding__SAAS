@@ -1,0 +1,265 @@
+{
+  "clientes": [
+    {
+      "id": "test_client_001",
+      "email": "test@company.com",
+      "nombre_empresa": "Test Company S.A.",
+      "progreso": 75,
+      "estado_cliente": "en_proceso",
+      "estado_admin": "en_revision",
+      "fecha_creacion": "2026-04-13T10:30:00Z",
+      "invitationCode": "TEST001XYZ",
+      "info_basica": {
+        "servicios": "Consultoría en marketing digital y estrategia de crecimiento",
+        "precios": "Plan Startup: $999/mes | Plan Professional: $1999/mes | Plan Enterprise: Custom",
+        "cliente_ideal": "Startups tech entre 10-50 empleados que quieren escalar su presencia digital",
+        "web": "https://testcompany.com",
+        "identidad_marca": "Modern, tech-forward, approachable, professional. Primary: #2563EB, Secondary: #10B981",
+        "completado": true
+      },
+      "meta_ads": {
+        "completado": true
+      },
+      "google_ads": {
+        "completado": true
+      },
+      "comunicacion": {
+        "slack_configurado": true
+      },
+      "materiales": {
+        "archivos": [
+          {
+            "nombre": "brand-guidelines.pdf",
+            "tipo": "pdf",
+            "fecha_carga": "2026-04-15T14:20:00Z"
+          },
+          {
+            "nombre": "product-demo.mp4",
+            "tipo": "video",
+            "fecha_carga": "2026-04-15T14:25:00Z"
+          }
+        ]
+      },
+      "ia_config": {
+        "nombre_asistente": "Luna",
+        "telefono": "+34 666 666 666",
+        "email": "contact@testcompany.com",
+        "horarios": "Lunes-Viernes 9AM-6PM, Sábado 10AM-2PM",
+        "servicios": "Customer support, lead qualification, scheduling, FAQ assistance",
+        "faqs": "Q: What is your response time? A: 24 hours or less...",
+        "tono": "amigable",
+        "completado": false
+      },
+      "agendamiento": {
+        "meeting_agendado": false,
+        "completado": false
+      }
+    },
+    {
+      "id": "test_client_002",
+      "email": "hello@innovate.com",
+      "nombre_empresa": "InnovateTech Solutions",
+      "progreso": 30,
+      "estado_cliente": "en_proceso",
+      "estado_admin": "pendiente",
+      "fecha_creacion": "2026-04-20T15:45:00Z",
+      "invitationCode": "INNOV002DEF",
+      "info_basica": {
+        "servicios": "Desarrollo de software personalizado, consultoría técnica, soporte 24/7",
+        "precios": "Monthly retainer from $2000 onwards",
+        "cliente_ideal": "Growing tech companies needing custom solutions",
+        "web": "https://innovatetech.io",
+        "identidad_marca": "Bold, innovative, technical. Colors: #FF6B35, #004E89",
+        "completado": true
+      },
+      "meta_ads": {
+        "completado": false
+      },
+      "google_ads": {
+        "completado": true
+      },
+      "comunicacion": {
+        "slack_configurado": false
+      },
+      "materiales": {
+        "archivos": []
+      },
+      "ia_config": {
+        "nombre_asistente": "Atlas",
+        "telefono": "+1 555 123 4567",
+        "email": "support@innovatetech.io",
+        "horarios": "Monday-Friday 8AM-8PM EST",
+        "servicios": "Technical support, implementation guidance, troubleshooting",
+        "faqs": "",
+        "tono": "profesional",
+        "completado": false
+      },
+      "agendamiento": {
+        "meeting_agendado": false,
+        "completado": false
+      }
+    },
+    {
+      "id": "test_client_003",
+      "email": "info@globalcorp.de",
+      "nombre_empresa": "GlobalCorp International",
+      "progreso": 100,
+      "estado_cliente": "completado",
+      "estado_admin": "finalizado",
+      "fecha_creacion": "2026-02-01T08:00:00Z",
+      "invitationCode": "GLOBAL003GHI",
+      "info_basica": {
+        "servicios": "Enterprise solutions, digital transformation, legacy system modernization",
+        "precios": "Custom enterprise packages starting from $50,000/year",
+        "cliente_ideal": "Fortune 500 companies and large enterprises",
+        "web": "https://globalcorp.com",
+        "identidad_marca": "Corporate, trustworthy, professional. Color: #1F2937",
+        "completado": true
+      },
+      "meta_ads": {
+        "completado": true
+      },
+      "google_ads": {
+        "completado": true
+      },
+      "comunicacion": {
+        "slack_configurado": true
+      },
+      "materiales": {
+        "archivos": [
+          {
+            "nombre": "case-studies.pdf",
+            "tipo": "pdf",
+            "fecha_carga": "2026-02-05T10:00:00Z"
+          },
+          {
+            "nombre": "testimonials.mp4",
+            "tipo": "video",
+            "fecha_carga": "2026-02-05T10:15:00Z"
+          },
+          {
+            "nombre": "company-presentation.pptx",
+            "tipo": "pptx",
+            "fecha_carga": "2026-02-05T10:30:00Z"
+          }
+        ]
+      },
+      "ia_config": {
+        "nombre_asistente": "Zenith",
+        "telefono": "+49 30 555 1234",
+        "email": "concierge@globalcorp.com",
+        "horarios": "24/7 with dedicated account manager",
+        "servicios": "Enterprise support, strategic consulting, implementation management",
+        "faqs": "Comprehensive FAQ database with 100+ entries covering all services and products",
+        "tono": "formal",
+        "completado": true
+      },
+      "agendamiento": {
+        "meeting_agendado": true,
+        "fecha": "2026-04-25 10:00",
+        "completado": true
+      }
+    },
+    {
+      "id": "test_client_004",
+      "email": "contact@startupv.io",
+      "nombre_empresa": "StartupVentures",
+      "progreso": 45,
+      "estado_cliente": "en_proceso",
+      "estado_admin": "en_revision",
+      "fecha_creacion": "2026-03-10T12:00:00Z",
+      "invitationCode": "STARTUP004JKL",
+      "info_basica": {
+        "servicios": "Venture capital matchmaking, pitch deck creation, investor relations",
+        "precios": "Tiered: Seed ($1999), Series A ($4999), Series B+ (Custom)",
+        "cliente_ideal": "Early-stage startups seeking funding",
+        "web": "https://startupventures.io",
+        "identidad_marca": "Young, dynamic, growth-oriented. Primary: #7C3AED, Secondary: #EC4899",
+        "completado": true
+      },
+      "meta_ads": {
+        "completado": true
+      },
+      "google_ads": {
+        "completado": false
+      },
+      "comunicacion": {
+        "slack_configurado": true
+      },
+      "materiales": {
+        "archivos": [
+          {
+            "nombre": "investor-guide.pdf",
+            "tipo": "pdf",
+            "fecha_carga": "2026-03-15T14:30:00Z"
+          }
+        ]
+      },
+      "ia_config": {
+        "nombre_asistente": "Spark",
+        "telefono": "+1 650 555 9999",
+        "email": "help@startupventures.io",
+        "horarios": "Monday-Friday 9AM-5PM PST",
+        "servicios": "Investor matching, pitch feedback, funding guidance",
+        "faqs": "How to prepare for investor meetings? What documents do I need?",
+        "tono": "casual",
+        "completado": false
+      },
+      "agendamiento": {
+        "meeting_agendado": true,
+        "fecha": "2026-05-01 14:00",
+        "completado": false
+      }
+    }
+  ],
+  "invitations": [
+    {
+      "codigo": "DEMO001ABC",
+      "estado": "pendiente",
+      "email_cliente": "newclient@example.com",
+      "empresa": "Example Corp"
+    },
+    {
+      "codigo": "ALPHA002XYZ",
+      "estado": "pendiente",
+      "email_cliente": "prospect@techco.com",
+      "empresa": "TechCo Industries"
+    },
+    {
+      "codigo": "TEST001XYZ",
+      "estado": "usado",
+      "email_cliente": "test@company.com",
+      "empresa": "Test Company S.A.",
+      "usado_por": "test@company.com",
+      "usado_en": "2026-04-13T10:35:00Z",
+      "id_cliente": "test_client_001"
+    },
+    {
+      "codigo": "INNOV002DEF",
+      "estado": "usado",
+      "email_cliente": "hello@innovate.com",
+      "empresa": "InnovateTech Solutions",
+      "usado_por": "hello@innovate.com",
+      "usado_en": "2026-04-20T15:50:00Z",
+      "id_cliente": "test_client_002"
+    },
+    {
+      "codigo": "GLOBAL003GHI",
+      "estado": "usado",
+      "email_cliente": "info@globalcorp.de",
+      "empresa": "GlobalCorp International",
+      "usado_por": "info@globalcorp.de",
+      "usado_en": "2026-02-01T08:05:00Z",
+      "id_cliente": "test_client_003"
+    },
+    {
+      "codigo": "STARTUP004JKL",
+      "estado": "usado",
+      "email_cliente": "contact@startupv.io",
+      "empresa": "StartupVentures",
+      "usado_por": "contact@startupv.io",
+      "usado_en": "2026-03-10T12:05:00Z",
+      "id_cliente": "test_client_004"
+    }
+  ]
+}

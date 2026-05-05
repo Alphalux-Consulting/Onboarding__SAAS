@@ -1,0 +1,77 @@
+# Documentation
+DATOS_EJEMPLO.md
+FIREBASE_SETUP.md
+RESUMEN.md
+/data
+
+# Environment variables (DO NOT COMMIT SENSITIVE DATA!)
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+
+# Build outputs
+dist/
+build/
+public/env-config.js
+.next/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Firebase
+.firebase/
+.firebaserc
+
+# Vercel
+.vercel
+.vercel/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backup & Temporary files
+*.bak
+*.backup
+*.tmp
+*.temp
+.DS_Store
+
+# Cache
+.cache/
+.eslintcache
+
+# Sensitive files
+*.pem
+*.key
+*.p12
+*.jks
+
+# Local development
+.env.local.example
+notes/
+scratch/
+
+# IDE local settings
+.vscode/settings.json
+.idea/workspace.xml
