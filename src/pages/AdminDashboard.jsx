@@ -16,6 +16,7 @@ import {
   getGoogleSheetsImportInstructions
 } from '../services/googleSheetsSync'
 import LoadingScreen from '../components/LoadingScreen'
+import Logo from '../components/Logo'
 import StatusBadge from '../components/StatusBadge'
 import ProgressIndicator from '../components/ProgressIndicator'
 import ClientCard from '../components/ClientCard'
@@ -274,16 +275,21 @@ export default function AdminDashboard() {
     <div className="admin-dashboard-container">
       {/* Header */}
       <div className="admin-dashboard-header">
-        <div className="admin-header-left">
-          <h1>Panel de Administración</h1>
-          <p>Bienvenido, {user?.email}</p>
+        <div className="admin-header-logo">
+          <Logo />
         </div>
-        <button
-          className="btn-logout"
-          onClick={handleLogout}
-        >
-          Cerrar Sesión
-        </button>
+        <div className="admin-header-right">
+          <div className="admin-header-user">
+            <span className="admin-header-user-role">Administrador</span>
+            <span className="admin-header-user-email">{user?.email}</span>
+          </div>
+          <button
+            className="btn-logout"
+            onClick={handleLogout}
+          >
+            Salir
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -321,8 +327,10 @@ export default function AdminDashboard() {
         {activeTab === 'clients' && (
           <div className="admin-clients-section">
             <div className="clients-header">
-              <h2>Gestión de Clientes</h2>
-              <p>Visualiza el progreso de cada cliente y genera links de onboarding</p>
+              <div className="clients-header-info">
+                <h2>Gestión de Clientes</h2>
+                <p>Visualiza el progreso de cada cliente y genera links de onboarding</p>
+              </div>
               <button
                 className="btn btn-primary"
                 onClick={() => setShowCreateClientForm(!showCreateClientForm)}
@@ -331,77 +339,43 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Filtro por Estado */}
-            <div className="clients-filter">
-              <div className="filter-group">
-                <span className="filter-label">Filtrar por estado:</span>
-                <div className="filter-buttons">
-                  <button
-                    className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('all')}
-                  >
-                    Todos ({clients.length})
-                  </button>
-                  <button
-                    className={`filter-btn ${statusFilter === 'no_iniciado' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('no_iniciado')}
-                  >
-                    No Iniciado ({clients.filter(c => c.estado_cliente === 'no_iniciado').length})
-                  </button>
-                  <button
-                    className={`filter-btn ${statusFilter === 'en_proceso' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('en_proceso')}
-                  >
-                    En Proceso ({clients.filter(c => c.estado_cliente === 'en_proceso').length})
-                  </button>
-                  <button
-                    className={`filter-btn ${statusFilter === 'completado' ? 'active' : ''}`}
-                    onClick={() => setStatusFilter('completado')}
-                  >
-                    Completado ({clients.filter(c => c.estado_cliente === 'completado').length})
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {showCreateClientForm && (
               <div className="create-client-form">
                 <h3>Crear Nuevo Cliente</h3>
                 <form onSubmit={handleCreateClient}>
-                  <div className="form-group">
-                    <label>Empresa *</label>
-                    <input
-                      type="text"
-                      placeholder="Nombre de la empresa"
-                      value={newClientEmpresa}
-                      onChange={(e) => setNewClientEmpresa(e.target.value)}
-                      disabled={creatingClient}
-                      required
-                    />
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Empresa *</label>
+                      <input
+                        type="text"
+                        placeholder="Nombre de la empresa"
+                        value={newClientEmpresa}
+                        onChange={(e) => setNewClientEmpresa(e.target.value)}
+                        disabled={creatingClient}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        placeholder="email@empresa.com"
+                        value={newClientEmail}
+                        onChange={(e) => setNewClientEmail(e.target.value)}
+                        disabled={creatingClient}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Nombre Comercial</label>
+                      <input
+                        type="text"
+                        placeholder="Nombre comercial (opcional)"
+                        value={newClientNombreComercial}
+                        onChange={(e) => setNewClientNombreComercial(e.target.value)}
+                        disabled={creatingClient}
+                      />
+                    </div>
                   </div>
-
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      placeholder="email@empresa.com"
-                      value={newClientEmail}
-                      onChange={(e) => setNewClientEmail(e.target.value)}
-                      disabled={creatingClient}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Nombre Comercial</label>
-                    <input
-                      type="text"
-                      placeholder="Nombre comercial (opcional)"
-                      value={newClientNombreComercial}
-                      onChange={(e) => setNewClientNombreComercial(e.target.value)}
-                      disabled={creatingClient}
-                    />
-                  </div>
-
                   <button
                     type="submit"
                     className="btn btn-primary"
@@ -413,39 +387,37 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            <div className="admin-clients-section">
-              <DashboardSummary clients={clients} />
+            <DashboardSummary clients={clients} />
 
-              <div className="filter-section">
-                <FilterBar
-                  statusFilter={statusFilter}
-                  onFilterChange={setStatusFilter}
-                  statusCounts={{
-                    total: clients.length,
-                    no_iniciado: clients.filter(c => c.estado_cliente === 'no_iniciado').length,
-                    en_proceso: clients.filter(c => c.estado_cliente === 'en_proceso').length,
-                    completado: clients.filter(c => c.estado_cliente === 'completado').length
-                  }}
-                />
-              </div>
-
-              <ClientCardGrid isEmpty={clients.length === 0}>
-                {clients
-                  .filter(client =>
-                    statusFilter === 'all' || client.estado_cliente === statusFilter
-                  )
-                  .map(client => (
-                    <ClientCard
-                      key={client.id}
-                      client={client}
-                      onViewDetails={setSelectedClient}
-                      onGenerateToken={() => handleGenerateToken(client.id, client.email, client.nombre_empresa)}
-                      onStatusChange={handleStatusChange}
-                      generatingToken={generatingToken}
-                    />
-                  ))}
-              </ClientCardGrid>
+            <div className="filter-section">
+              <FilterBar
+                statusFilter={statusFilter}
+                onFilterChange={setStatusFilter}
+                statusCounts={{
+                  total: clients.length,
+                  no_iniciado: clients.filter(c => c.estado_cliente === 'no_iniciado').length,
+                  en_proceso: clients.filter(c => c.estado_cliente === 'en_proceso').length,
+                  completado: clients.filter(c => c.estado_cliente === 'completado').length
+                }}
+              />
             </div>
+
+            <ClientCardGrid isEmpty={clients.length === 0}>
+              {clients
+                .filter(client =>
+                  statusFilter === 'all' || client.estado_cliente === statusFilter
+                )
+                .map(client => (
+                  <ClientCard
+                    key={client.id}
+                    client={client}
+                    onViewDetails={setSelectedClient}
+                    onGenerateToken={() => handleGenerateToken(client.id, client.email, client.nombre_empresa)}
+                    onStatusChange={handleStatusChange}
+                    generatingToken={generatingToken}
+                  />
+                ))}
+            </ClientCardGrid>
           </div>
         )}
 

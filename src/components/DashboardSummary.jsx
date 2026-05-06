@@ -15,19 +15,20 @@ export default function DashboardSummary({ clients = [] }) {
   }
 
   const summaryCards = [
-    { label: 'Total de Clientes', value: metrics.total },
-    { label: 'Clientes Activos', value: metrics.active },
-    { label: 'En Riesgo', value: metrics.atRisk },
-    { label: 'Completados', value: metrics.completed },
-    { label: 'Progreso Promedio', value: `${metrics.avgProgress}%` }
+    { label: 'Total Clientes', value: metrics.total, type: 'total', symbol: '◈' },
+    { label: 'Clientes Activos', value: metrics.active, type: 'active', symbol: '◉' },
+    { label: 'En Riesgo', value: metrics.atRisk, type: 'risk', symbol: '◆' },
+    { label: 'Completados', value: metrics.completed, type: 'completed', symbol: '◎' },
+    { label: 'Progreso Promedio', value: `${metrics.avgProgress}%`, type: 'progress', symbol: '◈' }
   ]
 
   return (
     <div className="dashboard-summary">
       {summaryCards.map((card, index) => (
-        <div key={index} className="summary-card">
-          <p className="summary-card-label">{card.label}</p>
+        <div key={index} className={`summary-card summary-card--${card.type}`}>
+          <span className="summary-card-symbol">{card.symbol}</span>
           <p className="summary-card-value">{card.value}</p>
+          <p className="summary-card-label">{card.label}</p>
         </div>
       ))}
     </div>

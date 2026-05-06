@@ -5,7 +5,8 @@
       "Read(//c/Users/Yeison Andres/Desktop/Trabajo de EUU/SAAS/Onboarding_SAAS/**)",
       "Bash(npm run *)",
       "mcp__Claude_in_Chrome__switch_browser",
-      "mcp__Claude_in_Chrome__list_connected_browsers"
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "Bash(npx vite *)"
     ]
   }
 }
