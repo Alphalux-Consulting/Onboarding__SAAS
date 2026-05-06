@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Claude_in_Chrome__tabs_context_mcp"
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Read(//c/Users/Yeison Andres/Desktop/Trabajo de EUU/SAAS/Onboarding_SAAS/**)",
+      "Bash(npm run *)",
+      "mcp__Claude_in_Chrome__switch_browser",
+      "mcp__Claude_in_Chrome__list_connected_browsers"
     ]
   }
 }

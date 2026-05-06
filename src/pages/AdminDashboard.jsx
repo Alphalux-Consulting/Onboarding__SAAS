@@ -16,6 +16,12 @@ import {
   getGoogleSheetsImportInstructions
 } from '../services/googleSheetsSync'
 import LoadingScreen from '../components/LoadingScreen'
+import StatusBadge from '../components/StatusBadge'
+import ProgressIndicator from '../components/ProgressIndicator'
+import ClientCard from '../components/ClientCard'
+import ClientCardGrid from '../components/ClientCardGrid'
+import FilterBar from '../components/FilterBar'
+import DashboardSummary from '../components/DashboardSummary'
 import './pages.css'
 
 export default function AdminDashboard() {
@@ -43,6 +49,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     initializeDashboard()
   }, [])
+
+  // Auto-update status to "completado" when progress reaches 100% and status is "en_proceso"
+  useEffect(() => {
+    clients.forEach(client => {
+      if (client.progreso === 100 && client.estado_cliente === 'en_proceso') {
+        handleUpdateClientStatus(client.id, 'completado')
+      }
+    })
+  }, [clients])
 
   const initializeDashboard = async () => {
     try {
@@ -149,6 +164,14 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Error updating admin status:', err)
       setError('Error al actualizar estado del admin')
+    }
+  }
+
+  const handleStatusChange = (clientId, statusType, newStatus) => {
+    if (statusType === 'estado_cliente') {
+      handleUpdateClientStatus(clientId, newStatus)
+    } else if (statusType === 'estado_admin') {
+      handleUpdateAdminStatus(clientId, newStatus)
     }
   }
 
@@ -390,100 +413,39 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {clients.length === 0 ? (
-              <div className="empty-state">
-                <p>No hay clientes registrados aún.</p>
+            <div className="admin-clients-section">
+              <DashboardSummary clients={clients} />
+
+              <div className="filter-section">
+                <FilterBar
+                  statusFilter={statusFilter}
+                  onFilterChange={setStatusFilter}
+                  statusCounts={{
+                    total: clients.length,
+                    no_iniciado: clients.filter(c => c.estado_cliente === 'no_iniciado').length,
+                    en_proceso: clients.filter(c => c.estado_cliente === 'en_proceso').length,
+                    completado: clients.filter(c => c.estado_cliente === 'completado').length
+                  }}
+                />
               </div>
-            ) : (
-              <div className="clients-table-wrapper">
-                <table className="clients-table">
-                  <thead>
-                    <tr>
-                      <th>Empresa</th>
-                      <th>Email</th>
-                      <th>Progreso</th>
-                      <th>Estado Cliente</th>
-                      <th>Estado Admin</th>
-                      <th>Última Actualización</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {clients
-                      .filter(client =>
-                        statusFilter === 'all' || client.estado_cliente === statusFilter
-                      )
-                      .map(client => (
-                      <tr key={client.id} className="client-row">
-                        <td>
-                          <strong>{client.nombre_empresa || client.nombre_comercial || 'Sin nombre'}</strong>
-                        </td>
-                        <td>{client.email || '-'}</td>
-                        <td>
-                          <div className="progress-cell">
-                            <div className="progress-bar-small">
-                              <div
-                                className="progress-fill"
-                                style={{ width: `${client.progreso || 0}%` }}
-                              ></div>
-                            </div>
-                            <span>{client.progreso || 0}%</span>
-                          </div>
-                        </td>
-                        <td>
-                          <select
-                            value={client.estado_cliente || 'no_iniciado'}
-                            onChange={(e) => handleUpdateClientStatus(client.id, e.target.value)}
-                            className="status-select"
-                          >
-                            <option value="no_iniciado">No Iniciado</option>
-                            <option value="en_proceso">En Proceso</option>
-                            <option value="completado">Completado</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            value={client.estado_admin || 'pendiente'}
-                            onChange={(e) => handleUpdateAdminStatus(client.id, e.target.value)}
-                            className="status-select"
-                          >
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en_revision">En Revisión</option>
-                            <option value="finalizado">Finalizado</option>
-                          </select>
-                        </td>
-                        <td>
-                          <small>
-                            {client.updatedAt
-                              ? new Date(client.updatedAt.toDate?.() || client.updatedAt).toLocaleDateString()
-                              : '-'}
-                          </small>
-                        </td>
-                        <td>
-                          <div className="action-buttons">
-                            <button
-                              className="btn-small btn-info"
-                              onClick={() => setSelectedClient(client)}
-                              title="Ver detalles"
-                            >
-                              👁️ Ver
-                            </button>
-                            <button
-                              className="btn-small btn-success"
-                              onClick={() => handleGenerateToken(client.id, client.email, client.nombre_empresa)}
-                              disabled={generatingToken}
-                              title="Generar y copiar link"
-                            >
-                              {generatingToken ? '⏳' : '🔗'} Link
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+
+              <ClientCardGrid isEmpty={clients.length === 0}>
+                {clients
+                  .filter(client =>
+                    statusFilter === 'all' || client.estado_cliente === statusFilter
+                  )
+                  .map(client => (
+                    <ClientCard
+                      key={client.id}
+                      client={client}
+                      onViewDetails={setSelectedClient}
+                      onGenerateToken={() => handleGenerateToken(client.id, client.email, client.nombre_empresa)}
+                      onStatusChange={handleStatusChange}
+                      generatingToken={generatingToken}
+                    />
+                  ))}
+              </ClientCardGrid>
+            </div>
           </div>
         )}
 
