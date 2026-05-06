@@ -1,4 +1,9 @@
 /* ============================================================================
+   GOOGLE FONTS INTEGRATION
+   ============================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
+
+/* ============================================================================
    PAGE-SPECIFIC STYLES
    ============================================================================ */
 
@@ -53,12 +58,15 @@
 }
 
 .brand-section h1 {
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: 3.5rem;
+  font-weight: 800;
   color: #d4af37;
   text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
   margin: 0 0 0.5rem 0;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .brand-subtitle {
@@ -67,6 +75,7 @@
   font-weight: 300;
   margin: 0;
   letter-spacing: 0.5px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .role-description {
@@ -74,6 +83,9 @@
   font-size: 1.1rem;
   margin: 2rem 0 2.5rem 0;
   font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
 }
 
 .role-buttons {
@@ -235,17 +247,21 @@
 }
 
 .admin-login-header h1 {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: #d4af37;
   margin: 0 0 0.5rem 0;
-  font-weight: 700;
+  font-weight: 400;
   text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  letter-spacing: 2.5px;
 }
 
 .admin-login-header p {
   color: #d0d0d0;
   font-size: 0.95rem;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .form-group {
@@ -257,9 +273,11 @@
 .form-group label {
   color: #f5f5f5;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 0.5rem;
   display: block;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .form-group input {
@@ -412,7 +430,10 @@
   font-size: 1.8rem;
   color: #d4af37;
   margin: 0 0 1rem 0;
-  font-weight: 700;
+  font-weight: 400;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  letter-spacing: 2.5px;
 }
 
 .token-validation-message {
@@ -420,6 +441,8 @@
   font-size: 1rem;
   margin: 0 0 2rem 0;
   line-height: 1.6;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .token-input-group {
@@ -520,7 +543,12 @@
 .admin-header-left h1 {
   margin: 0 0 0.5rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 2rem;
   font-size: 1.8rem;
+  letter-spacing: 2.5px;
 }
 
 .admin-header-left p {
@@ -632,6 +660,11 @@
 .clients-header h2 {
   margin: 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: 2.5px;
 }
 
 .clients-header p {
@@ -711,7 +744,12 @@
 .create-client-form h3 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.5rem;
   font-size: 1.1rem;
+  letter-spacing: 2px;
 }
 
 .create-client-form form {
@@ -731,6 +769,8 @@
   color: #d4af37;
   font-size: 0.9rem;
   font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .form-group input {
@@ -871,6 +911,11 @@
 .analytics-header h2 {
   margin: 0 0 2rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: 2.5px;
 }
 
 .analytics-grid {
@@ -891,6 +936,9 @@
 .analytics-card h3 {
   margin: 0 0 1rem 0;
   color: #d0d0d0;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  font-weight: 600;
   font-size: 0.95rem;
 }
 
@@ -908,6 +956,11 @@
 .analytics-section h3 {
   color: #d4af37;
   margin-bottom: 1.5rem;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
 }
 
 .status-distribution {
@@ -985,6 +1038,11 @@
 .modal-header h2 {
   margin: 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: 2.5px;
 }
 
 .modal-close {
@@ -1019,7 +1077,12 @@
 .client-detail-section h3 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.3rem;
   font-size: 1rem;
+  letter-spacing: 1.5px;
 }
 
 .detail-grid {
@@ -1109,6 +1172,11 @@
 .onboarding-brand h1 {
   margin: 0 0 0.5rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 2.5rem;
+  letter-spacing: 3px;
   font-size: 2rem;
   text-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
 }
@@ -1116,6 +1184,9 @@
 .onboarding-brand p {
   margin: 0;
   color: #d0d0d0;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  font-size: 0.95rem;
   font-size: 0.95rem;
 }
 
@@ -1207,12 +1278,19 @@
   margin: 0 0 0.75rem 0;
   color: #d4af37;
   font-size: 1.8rem;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 2.5px;
 }
 
 .step-description {
   margin: 0 0 2rem 0;
   color: #d0d0d0;
   line-height: 1.6;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  font-size: 0.95rem;
 }
 
 .module-form {
@@ -1242,6 +1320,8 @@
   font-weight: 500;
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .form-group input,
@@ -1253,8 +1333,9 @@
   border-radius: 8px;
   color: #f5f5f5;
   font-size: 1rem;
-  font-family: inherit;
+  font-family: 'Montserrat', sans-serif;
   transition: all 0.3s ease;
+  letter-spacing: 0.2px;
 }
 
 .form-group input::placeholder,
@@ -1283,6 +1364,76 @@
   margin-top: 0.25rem;
   font-weight: 400;
   line-height: 1.4;
+}
+
+/* ============================================================================
+   COLLAPSIBLE SECTIONS
+   ============================================================================ */
+
+.collapsible-section {
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.collapsible-header {
+  width: 100%;
+  padding: 1.25rem;
+  background: rgba(212, 175, 55, 0.08);
+  border: none;
+  color: #f5f5f5;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.collapsible-header:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+}
+
+.collapsible-header:active {
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.toggle-icon {
+  display: inline-block;
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+  margin-left: 0.5rem;
+  color: #d4af37;
+  flex-shrink: 0;
+}
+
+.collapsible-content {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  animation: expandContent 0.3s ease-out;
+  max-height: 2000px;
+  overflow: hidden;
+}
+
+@keyframes expandContent {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
 }
 
 /* ============================================================================
@@ -1376,7 +1527,12 @@ select option:checked,
 .uploaded-files h4 {
   margin: 0 0 0.75rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.2rem;
   font-size: 0.9rem;
+  letter-spacing: 1.5px;
 }
 
 .uploaded-files ul {
@@ -1425,29 +1581,83 @@ select option:checked,
 
 .btn-primary,
 .btn-secondary {
-  padding: 0.875rem 1.5rem;
+  padding: 1rem 2.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  font-size: 0.95rem;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #d4af37 0%, #e5c158 100%);
-  color: #000;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #e8c547 0%, #d4af37 50%, #c9a52d 100%);
+  color: #1a1a1a;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  box-shadow:
+    0 20px 50px rgba(212, 175, 55, 0.25),
+    0 10px 25px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #d4af37;
+  background-image:
+    linear-gradient(180deg, #e8c547 0%, #d4af37 50%, #c9a52d 100%),
+    linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  background-size: 100% 100%, 100% 100%;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+  border-radius: 12px 12px 0 0;
+  pointer-events: none;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+  border-radius: 0 0 12px 12px;
+  pointer-events: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+  transform: translateY(-4px);
+  box-shadow:
+    0 28px 60px rgba(212, 175, 55, 0.35),
+    0 14px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(180deg, #f0d873 0%, #e0bf45 50%, #d4af37 100%);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 20px rgba(212, 175, 55, 0.2),
+    0 5px 10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {
@@ -1494,15 +1704,20 @@ select option:checked,
 
 .welcome-title {
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 400;
   color: #f5f5f5;
   margin: 0 0 1rem 0;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  letter-spacing: 1px;
 }
 
 .welcome-subtitle {
   font-size: 1rem;
   color: #d0d0d0;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .welcome-message {
@@ -1518,12 +1733,19 @@ select option:checked,
   margin: 0;
   color: #d4af37;
   font-size: 1.3rem;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 1.5px;
 }
 
 .welcome-message p {
   margin: 0;
   color: #d0d0d0;
   line-height: 1.8;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
+  font-size: 0.9rem;
   font-size: 0.95rem;
 }
 
@@ -1585,7 +1807,12 @@ select option:checked,
 .welcome-video h4 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.3rem;
   font-size: 1.1rem;
+  letter-spacing: 1.5px;
 }
 
 .video-container {
@@ -1628,7 +1855,12 @@ select option:checked,
 .module-video h4 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.3rem;
   font-size: 1.1rem;
+  letter-spacing: 1.5px;
 }
 
 /* Welcome Actions */
@@ -1700,6 +1932,11 @@ select option:checked,
 .info-card h4 {
   margin: 0 0 0.5rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.1rem;
+  letter-spacing: 1.5px;
 }
 
 .info-card p {
@@ -1725,11 +1962,17 @@ select option:checked,
   margin: 0 0 0.5rem 0;
   color: #4caf50;
   font-size: 1.6rem;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 2.5px;
 }
 
 .confirmation-header p {
   margin: 0;
   color: #d0d0d0;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.3px;
 }
 
 .confirmation-checklist {
@@ -1742,6 +1985,11 @@ select option:checked,
 .confirmation-checklist h4 {
   margin: 0 0 1.5rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.2rem;
+  letter-spacing: 1.5px;
 }
 
 .checklist-item {
@@ -1798,6 +2046,11 @@ select option:checked,
 .export-header h2 {
   margin: 0 0 0.5rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.8rem;
+  letter-spacing: 2.5px;
 }
 
 .export-header p {
@@ -1832,7 +2085,12 @@ select option:checked,
 .export-card h3 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.3rem;
   font-size: 1.1rem;
+  letter-spacing: 1.5px;
 }
 
 .export-card p {
@@ -1864,6 +2122,11 @@ select option:checked,
 .export-info-section h3 {
   margin: 0 0 1rem 0;
   color: #d4af37;
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.3rem;
+  letter-spacing: 1.5px;
 }
 
 .export-info-section ul {

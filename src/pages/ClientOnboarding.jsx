@@ -412,18 +412,28 @@ function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
 }
 
 function BasicInfoModule({ data, onInputChange }) {
+  const [expandedSections, setExpandedSections] = useState({})
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
+
   return (
     <div className="module-fields">
+      <div className="form-group">
+        <label>Nombre Comercial *</label>
+        <input
+          type="text"
+          value={data.nombre_comercial || ''}
+          onChange={(e) => onInputChange('nombre_comercial', e.target.value)}
+          placeholder="Ej: Mi Empresa SPA"
+        />
+      </div>
+
       <div className="form-row">
-        <div className="form-group">
-          <label>Nombre Comercial *</label>
-          <input
-            type="text"
-            value={data.nombre_comercial || ''}
-            onChange={(e) => onInputChange('nombre_comercial', e.target.value)}
-            placeholder="Ej: Mi Empresa SPA"
-          />
-        </div>
         <div className="form-group">
           <label>Razón Social *</label>
           <input
@@ -433,154 +443,199 @@ function BasicInfoModule({ data, onInputChange }) {
             placeholder="Razón social legal"
           />
         </div>
-      </div>
-
-      <div className="form-row">
         <div className="form-group">
           <label>Sector/Industria *</label>
           <input
             type="text"
             value={data.sector || ''}
             onChange={(e) => onInputChange('sector', e.target.value)}
-            placeholder="Ej: Marketing Digital, E-commerce, etc"
-          />
-        </div>
-        <div className="form-group">
-          <label>Dirección</label>
-          <input
-            type="text"
-            value={data.direccion || ''}
-            onChange={(e) => onInputChange('direccion', e.target.value)}
-            placeholder="Dirección física"
+            placeholder="Ej: Marketing Digital, E-commerce"
           />
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Ciudad *</label>
-          <input
-            type="text"
-            value={data.ciudad || ''}
-            onChange={(e) => onInputChange('ciudad', e.target.value)}
-            placeholder="Ciudad"
-          />
-        </div>
-        <div className="form-group">
-          <label>País *</label>
-          <input
-            type="text"
-            value={data.pais || ''}
-            onChange={(e) => onInputChange('pais', e.target.value)}
-            placeholder="País"
-          />
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('ubicacion')}
+        >
+          <span>📍 Ubicación (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.ubicacion ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.ubicacion && (
+          <div className="collapsible-content">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Dirección</label>
+                <input
+                  type="text"
+                  value={data.direccion || ''}
+                  onChange={(e) => onInputChange('direccion', e.target.value)}
+                  placeholder="Dirección física"
+                />
+              </div>
+              <div className="form-group">
+                <label>Ciudad *</label>
+                <input
+                  type="text"
+                  value={data.ciudad || ''}
+                  onChange={(e) => onInputChange('ciudad', e.target.value)}
+                  placeholder="Ciudad"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>País *</label>
+                <input
+                  type="text"
+                  value={data.pais || ''}
+                  onChange={(e) => onInputChange('pais', e.target.value)}
+                  placeholder="País"
+                />
+              </div>
+              <div className="form-group">
+                <label>Google Maps</label>
+                <input
+                  type="url"
+                  value={data.google_maps || ''}
+                  onChange={(e) => onInputChange('google_maps', e.target.value)}
+                  placeholder="https://maps.google.com/..."
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Email *</label>
-          <input
-            type="email"
-            value={data.email || ''}
-            onChange={(e) => onInputChange('email', e.target.value)}
-            placeholder="contacto@empresa.com"
-          />
-        </div>
-        <div className="form-group">
-          <label>Teléfono *</label>
-          <input
-            type="tel"
-            value={data.telefono || ''}
-            onChange={(e) => onInputChange('telefono', e.target.value)}
-            placeholder="+56912345678"
-          />
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('contacto')}
+        >
+          <span>📞 Contacto (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.contacto ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.contacto && (
+          <div className="collapsible-content">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Email *</label>
+                <input
+                  type="email"
+                  value={data.email || ''}
+                  onChange={(e) => onInputChange('email', e.target.value)}
+                  placeholder="contacto@empresa.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Teléfono *</label>
+                <input
+                  type="tel"
+                  value={data.telefono || ''}
+                  onChange={(e) => onInputChange('telefono', e.target.value)}
+                  placeholder="+56912345678"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>WhatsApp</label>
+                <input
+                  type="tel"
+                  value={data.whatsapp || ''}
+                  onChange={(e) => onInputChange('whatsapp', e.target.value)}
+                  placeholder="+56912345678"
+                />
+              </div>
+              <div className="form-group">
+                <label>Horario de Atención</label>
+                <input
+                  type="text"
+                  value={data.horarios || ''}
+                  onChange={(e) => onInputChange('horarios', e.target.value)}
+                  placeholder="Ej: Lunes-Viernes 9:00-18:00"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>WhatsApp</label>
-          <input
-            type="tel"
-            value={data.whatsapp || ''}
-            onChange={(e) => onInputChange('whatsapp', e.target.value)}
-            placeholder="+56912345678"
-          />
-        </div>
-        <div className="form-group">
-          <label>Horario de Atención al Cliente</label>
-          <input
-            type="text"
-            value={data.horarios || ''}
-            onChange={(e) => onInputChange('horarios', e.target.value)}
-            placeholder="Ej: Lunes-Viernes 9:00-18:00"
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Sitio Web</label>
-          <input
-            type="url"
-            value={data.web || ''}
-            onChange={(e) => onInputChange('web', e.target.value)}
-            placeholder="https://tusitio.com"
-          />
-        </div>
-        <div className="form-group">
-          <label>Link Google Maps</label>
-          <input
-            type="url"
-            value={data.google_maps || ''}
-            onChange={(e) => onInputChange('google_maps', e.target.value)}
-            placeholder="https://maps.google.com/..."
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Instagram</label>
-          <input
-            type="text"
-            value={data.instagram || ''}
-            onChange={(e) => onInputChange('instagram', e.target.value)}
-            placeholder="@tuinstagram o https://instagram.com/..."
-          />
-        </div>
-        <div className="form-group">
-          <label>Facebook</label>
-          <input
-            type="url"
-            value={data.facebook || ''}
-            onChange={(e) => onInputChange('facebook', e.target.value)}
-            placeholder="https://facebook.com/..."
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group">
-          <label>Otros Enlaces/Redes Sociales</label>
-          <textarea
-            value={data.otros_links || ''}
-            onChange={(e) => onInputChange('otros_links', e.target.value)}
-            placeholder="LinkedIn, TikTok, YouTube, o cualquier otro enlace (uno por línea)"
-            rows="2"
-          />
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('online')}
+        >
+          <span>🌐 Presencia Online (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.online ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.online && (
+          <div className="collapsible-content">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Sitio Web</label>
+                <input
+                  type="url"
+                  value={data.web || ''}
+                  onChange={(e) => onInputChange('web', e.target.value)}
+                  placeholder="https://tusitio.com"
+                />
+              </div>
+              <div className="form-group">
+                <label>Instagram</label>
+                <input
+                  type="text"
+                  value={data.instagram || ''}
+                  onChange={(e) => onInputChange('instagram', e.target.value)}
+                  placeholder="@usuario o enlace"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Facebook</label>
+                <input
+                  type="url"
+                  value={data.facebook || ''}
+                  onChange={(e) => onInputChange('facebook', e.target.value)}
+                  placeholder="https://facebook.com/..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Otros Enlaces</label>
+                <input
+                  type="text"
+                  value={data.otros_links || ''}
+                  onChange={(e) => onInputChange('otros_links', e.target.value)}
+                  placeholder="LinkedIn, TikTok, YouTube, etc"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="help-text">
-        <p>ℹ️ Toda esta información nos ayuda a entender mejor tu negocio y conectar con tu audiencia.</p>
+        <p>ℹ️ Expandir las secciones según necesites. La información se guarda automáticamente.</p>
       </div>
     </div>
   )
 }
 
 function ServiceModule({ data, onInputChange }) {
+  const [expandedSections, setExpandedSections] = useState({})
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
+
   return (
     <div className="module-fields">
       <div className="form-group">
@@ -597,16 +652,6 @@ function ServiceModule({ data, onInputChange }) {
       </div>
 
       <div className="form-group">
-        <label>¿Por qué es prioritario potenciarlo? *</label>
-        <textarea
-          value={data.por_que_prioritario || ''}
-          onChange={(e) => onInputChange('por_que_prioritario', e.target.value)}
-          placeholder="Cuéntanos por qué este servicio es prioritario para ti y para tu negocio..."
-          rows="3"
-        />
-      </div>
-
-      <div className="form-group">
         <label>Descripción Detallada *</label>
         <textarea
           value={data.descripcion_detallada || ''}
@@ -616,340 +661,319 @@ function ServiceModule({ data, onInputChange }) {
         />
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>¿Qué incluye?</label>
-          <textarea
-            value={data.que_incluye || ''}
-            onChange={(e) => onInputChange('que_incluye', e.target.value)}
-            placeholder="Características, entregas, beneficios incluidos (uno por línea)"
-            rows="3"
-          />
-        </div>
-        <div className="form-group">
-          <label>¿Qué NO incluye?</label>
-          <textarea
-            value={data.que_no_incluye || ''}
-            onChange={(e) => onInputChange('que_no_incluye', e.target.value)}
-            placeholder="Limitaciones, exclusiones, lo que está fuera de este servicio"
-            rows="3"
-          />
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('alcance')}
+        >
+          <span>📋 ¿Qué Incluye? (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.alcance ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.alcance && (
+          <div className="collapsible-content">
+            <div className="form-row">
+              <div className="form-group">
+                <label>¿Qué incluye?</label>
+                <textarea
+                  value={data.que_incluye || ''}
+                  onChange={(e) => onInputChange('que_incluye', e.target.value)}
+                  placeholder="Características, entregas, beneficios incluidos (uno por línea)"
+                  rows="2"
+                />
+              </div>
+              <div className="form-group">
+                <label>¿Qué NO incluye?</label>
+                <textarea
+                  value={data.que_no_incluye || ''}
+                  onChange={(e) => onInputChange('que_no_incluye', e.target.value)}
+                  placeholder="Limitaciones, exclusiones, lo que está fuera de este servicio"
+                  rows="2"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>¿Para quién es ideal?</label>
+                <textarea
+                  value={data.para_quien || ''}
+                  onChange={(e) => onInputChange('para_quien', e.target.value)}
+                  placeholder="Describe el tipo de cliente ideal para este servicio"
+                  rows="2"
+                />
+              </div>
+              <div className="form-group">
+                <label>¿Para quién NO es?</label>
+                <textarea
+                  value={data.para_quien_no || ''}
+                  onChange={(e) => onInputChange('para_quien_no', e.target.value)}
+                  placeholder="Qué tipo de cliente NO encaja con este servicio"
+                  rows="2"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>¿Para quién es ideal? (Perfil de Cliente)</label>
-          <textarea
-            value={data.para_quien || ''}
-            onChange={(e) => onInputChange('para_quien', e.target.value)}
-            placeholder="Describe el tipo de cliente ideal para este servicio"
-            rows="2"
-          />
-        </div>
-        <div className="form-group">
-          <label>¿Para quién NO es?</label>
-          <textarea
-            value={data.para_quien_no || ''}
-            onChange={(e) => onInputChange('para_quien_no', e.target.value)}
-            placeholder="Qué tipo de cliente NO encaja con este servicio"
-            rows="2"
-          />
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('precios')}
+        >
+          <span>💰 Precios & Paquetes (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.precios ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.precios && (
+          <div className="collapsible-content">
+            <div className="form-group">
+              <label>Rango de Precio/Tarifa *</label>
+              <input
+                type="text"
+                value={data.precio_rango || ''}
+                onChange={(e) => onInputChange('precio_rango', e.target.value)}
+                placeholder="Ej: $500 - $2000 USD / Ej: desde $99/mes"
+              />
+            </div>
+            <div className="form-group">
+              <label>Paquetes o Opciones</label>
+              <textarea
+                value={data.paquetes || ''}
+                onChange={(e) => onInputChange('paquetes', e.target.value)}
+                placeholder="Básico, Profesional, Premium - describe las diferencias (uno por línea)"
+                rows="2"
+              />
+            </div>
+            <div className="form-group">
+              <label>¿Hay opciones de financiación/pagos?</label>
+              <textarea
+                value={data.financiacion || ''}
+                onChange={(e) => onInputChange('financiacion', e.target.value)}
+                placeholder="Ej: Pago único, 3 cuotas, plan mensual, etc"
+                rows="2"
+              />
+            </div>
+            <div className="form-group">
+              <label>Duración del Servicio</label>
+              <input
+                type="text"
+                value={data.duracion || ''}
+                onChange={(e) => onInputChange('duracion', e.target.value)}
+                placeholder="Ej: 3 meses, 1 año, proyecto puntual, etc"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-group">
-        <label>Rango de Precio/Tarifa *</label>
-        <input
-          type="text"
-          value={data.precio_rango || ''}
-          onChange={(e) => onInputChange('precio_rango', e.target.value)}
-          placeholder="Ej: $500 - $2000 USD / Ej: desde $99/mes"
-        />
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('diferenciales')}
+        >
+          <span>✨ Beneficios & Diferenciales (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.diferenciales ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.diferenciales && (
+          <div className="collapsible-content">
+            <div className="form-group">
+              <label>¿Por qué es prioritario potenciarlo?</label>
+              <textarea
+                value={data.por_que_prioritario || ''}
+                onChange={(e) => onInputChange('por_que_prioritario', e.target.value)}
+                placeholder="Cuéntanos por qué este servicio es prioritario para ti y para tu negocio..."
+                rows="2"
+              />
+            </div>
+            <div className="form-group">
+              <label>¿Qué te diferencia? (Diferenciales)</label>
+              <textarea
+                value={data.diferenciales || ''}
+                onChange={(e) => onInputChange('diferenciales', e.target.value)}
+                placeholder="Qué te hace diferente de la competencia en este servicio (uno por línea)"
+                rows="2"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-group">
-        <label>Paquetes o Opciones</label>
-        <textarea
-          value={data.paquetes || ''}
-          onChange={(e) => onInputChange('paquetes', e.target.value)}
-          placeholder="Básico, Profesional, Premium - describe las diferencias (uno por línea)"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>¿Hay opciones de financiación/pagos?</label>
-        <textarea
-          value={data.financiacion || ''}
-          onChange={(e) => onInputChange('financiacion', e.target.value)}
-          placeholder="Ej: Pago único, 3 cuotas, plan mensual, etc"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Duración del Servicio</label>
-        <input
-          type="text"
-          value={data.duracion || ''}
-          onChange={(e) => onInputChange('duracion', e.target.value)}
-          placeholder="Ej: 3 meses, 1 año, proyecto puntual, etc"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>¿Qué te diferencia? (Diferenciales)</label>
-        <textarea
-          value={data.diferenciales || ''}
-          onChange={(e) => onInputChange('diferenciales', e.target.value)}
-          placeholder="Qué te hace diferente de la competencia en este servicio (uno por línea)"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Objeciones Frecuentes</label>
-        <textarea
-          value={data.objeciones_frecuentes || ''}
-          onChange={(e) => onInputChange('objeciones_frecuentes', e.target.value)}
-          placeholder="'Es muy caro', 'No tengo tiempo', etc - y tus respuestas (una por línea)"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Casos de Éxito / Testimonios</label>
-        <textarea
-          value={data.casos_exito || ''}
-          onChange={(e) => onInputChange('casos_exito', e.target.value)}
-          placeholder="Ejemplos de clientes satisfechos, resultados logrados, cambios generados"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Preguntas Frecuentes (FAQs)</label>
-        <textarea
-          value={data.faqs || ''}
-          onChange={(e) => onInputChange('faqs', e.target.value)}
-          placeholder="¿Cómo funciona?, ¿Cuándo veo resultados?, etc (una por línea)"
-          rows="2"
-        />
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('objeciones')}
+        >
+          <span>🚫 Objeciones & Respuestas (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.objeciones ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.objeciones && (
+          <div className="collapsible-content">
+            <div className="form-group">
+              <label>Objeciones Frecuentes</label>
+              <textarea
+                value={data.objeciones_frecuentes || ''}
+                onChange={(e) => onInputChange('objeciones_frecuentes', e.target.value)}
+                placeholder="'Es muy caro', 'No tengo tiempo', etc - y tus respuestas (una por línea)"
+                rows="2"
+              />
+            </div>
+            <div className="form-group">
+              <label>Casos de Éxito / Testimonios</label>
+              <textarea
+                value={data.casos_exito || ''}
+                onChange={(e) => onInputChange('casos_exito', e.target.value)}
+                placeholder="Ejemplos de clientes satisfechos, resultados logrados, cambios generados"
+                rows="2"
+              />
+            </div>
+            <div className="form-group">
+              <label>Preguntas Frecuentes (FAQs)</label>
+              <textarea
+                value={data.faqs || ''}
+                onChange={(e) => onInputChange('faqs', e.target.value)}
+                placeholder="¿Cómo funciona?, ¿Cuándo veo resultados?, etc (una por línea)"
+                rows="2"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="help-text">
-        <p>ℹ️ Cuanto más detallado sea este servicio, mejor podremos representarte en el mercado y atraer a tus clientes ideales.</p>
+        <p>ℹ️ Consolidamos 14 campos en 4 secciones. Expande cada una según necesites. Cuanto más detallado sea este servicio, mejor podremos representarte en el mercado.</p>
       </div>
     </div>
   )
 }
 
 function IdealClientModule({ data, onInputChange }) {
+  const [expandedSections, setExpandedSections] = useState({})
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
+
   return (
     <div className="module-fields">
       <div className="form-group">
-        <label>Descripción del Cliente Ideal *</label>
+        <label>Cliente Ideal - Descripción General *</label>
         <textarea
           value={data.cliente_ideal || ''}
           onChange={(e) => onInputChange('cliente_ideal', e.target.value)}
-          placeholder="Describe tu avatar de cliente perfecto con el máximo detalle..."
-          rows="3"
+          placeholder="Describe tu avatar de cliente perfecto. Incluye: edad, género, ubicación, profesión, situación actual..."
+          rows="4"
         />
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Rango de Edad</label>
-          <input
-            type="text"
-            value={data.edad || ''}
-            onChange={(e) => onInputChange('edad', e.target.value)}
-            placeholder="Ej: 25-45 años"
-          />
-        </div>
-        <div className="form-group">
-          <label>Género</label>
-          <select
-            value={data.genero || ''}
-            onChange={(e) => onInputChange('genero', e.target.value)}
-          >
-            <option value="">Seleccionar...</option>
-            <option value="masculino">Masculino</option>
-            <option value="femenino">Femenino</option>
-            <option value="no_especifica">No especifica</option>
-            <option value="mixto">Mixto</option>
-          </select>
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('desafios')}
+        >
+          <span>🎯 Desafíos & Dolores (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.desafios ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.desafios && (
+          <div className="collapsible-content">
+            <div className="form-group">
+              <label>Problemas Principales, Dolores & Miedos *</label>
+              <textarea
+                value={data.problemas_principales || ''}
+                onChange={(e) => onInputChange('problemas_principales', e.target.value)}
+                placeholder="¿Cuáles son sus mayores desafíos, frustraciones y miedos? Incluye: problemas de negocio, dolores emocionales, lo que lo asusta"
+                rows="3"
+              />
+            </div>
+            <div className="form-group">
+              <label>Barreras para Comprar</label>
+              <input
+                type="text"
+                value={data.barreras || ''}
+                onChange={(e) => onInputChange('barreras', e.target.value)}
+                placeholder="Ej: Presupuesto limitado, falta de tiempo, desconfianza, malas experiencias previas"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Ubicación Geográfica</label>
-          <input
-            type="text"
-            value={data.ubicacion || ''}
-            onChange={(e) => onInputChange('ubicacion', e.target.value)}
-            placeholder="Ej: LATAM, Europa, Global, regiones específicas"
-          />
-        </div>
-        <div className="form-group">
-          <label>Nivel Socioeconómico</label>
-          <select
-            value={data.nivel_socioeconomico || ''}
-            onChange={(e) => onInputChange('nivel_socioeconomico', e.target.value)}
-          >
-            <option value="">Seleccionar...</option>
-            <option value="bajo">Bajo</option>
-            <option value="medio">Medio</option>
-            <option value="alto">Alto</option>
-            <option value="muy_alto">Muy Alto</option>
-          </select>
-        </div>
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('deseos')}
+        >
+          <span>✨ Objetivos & Motivaciones (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.deseos ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.deseos && (
+          <div className="collapsible-content">
+            <div className="form-group">
+              <label>Deseos, Objetivos & Motivaciones *</label>
+              <textarea
+                value={data.deseos || ''}
+                onChange={(e) => onInputChange('deseos', e.target.value)}
+                placeholder="¿Qué desea lograr? ¿Cuál es su visión? ¿Qué lo motiva a tomar acción?"
+                rows="3"
+              />
+            </div>
+            <div className="form-group">
+              <label>¿Qué necesita escuchar para convencerse?</label>
+              <input
+                type="text"
+                value={data.necesita_escuchar || ''}
+                onChange={(e) => onInputChange('necesita_escuchar', e.target.value)}
+                placeholder="Ej: Garantías, testimonios, ROI garantizado, éxito comprobado"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="form-group">
-        <label>Profesión/Rol</label>
-        <input
-          type="text"
-          value={data.profesion || ''}
-          onChange={(e) => onInputChange('profesion', e.target.value)}
-          placeholder="Ej: Emprendedor, CEO, Gerente, Freelancer, etc"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Situación Actual del Cliente *</label>
-        <textarea
-          value={data.situacion_actual || ''}
-          onChange={(e) => onInputChange('situacion_actual', e.target.value)}
-          placeholder="¿En qué situación se encuentra actualmente? ¿A qué se dedica?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Problemas/Dolores Principales *</label>
-        <textarea
-          value={data.problemas_principales || ''}
-          onChange={(e) => onInputChange('problemas_principales', e.target.value)}
-          placeholder="¿Cuáles son sus mayores desafíos? (uno por línea)"
-          rows="3"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Dolores Emocionales</label>
-        <textarea
-          value={data.dolores_emocionales || ''}
-          onChange={(e) => onInputChange('dolores_emocionales', e.target.value)}
-          placeholder="¿Qué le quita el sueño? ¿Qué lo frustra emocionalmente?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Miedos</label>
-        <textarea
-          value={data.miedos || ''}
-          onChange={(e) => onInputChange('miedos', e.target.value)}
-          placeholder="¿Qué le genera desconfianza o miedo? ¿Qué lo asusta?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Deseos *</label>
-        <textarea
-          value={data.deseos || ''}
-          onChange={(e) => onInputChange('deseos', e.target.value)}
-          placeholder="¿Qué desea lograr? ¿Cuál es su visión a futuro?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Motivaciones *</label>
-        <textarea
-          value={data.motivaciones || ''}
-          onChange={(e) => onInputChange('motivaciones', e.target.value)}
-          placeholder="¿Qué lo motiva? ¿Qué lo impulsa a tomar acción?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Objeciones Típicas</label>
-        <textarea
-          value={data.objeciones || ''}
-          onChange={(e) => onInputChange('objeciones', e.target.value)}
-          placeholder="'Es muy caro', 'No tengo tiempo', 'Ya probé algo similar', etc"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>¿Qué ya ha probado? (Experiencias Anteriores)</label>
-        <textarea
-          value={data.que_probo_antes || ''}
-          onChange={(e) => onInputChange('que_probo_antes', e.target.value)}
-          placeholder="¿Qué soluciones similares ha utilizado? ¿Marcas competidoras?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>¿Qué lo frena de comprar? (Barreras)</label>
-        <textarea
-          value={data.que_le_frena || ''}
-          onChange={(e) => onInputChange('que_le_frena', e.target.value)}
-          placeholder="Presupuesto, tiempo, falta de confianza, etc"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>¿Qué necesita escuchar para convencerse?</label>
-        <textarea
-          value={data.necesita_escuchar || ''}
-          onChange={(e) => onInputChange('necesita_escuchar', e.target.value)}
-          placeholder="¿Qué mensajes, argumentos o garantías lo convencerían?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Señales de un Buen Lead</label>
-        <textarea
-          value={data.senales_buen_lead || ''}
-          onChange={(e) => onInputChange('senales_buen_lead', e.target.value)}
-          placeholder="¿Cómo identificas a un cliente que realmente necesita tu servicio?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Señales de un Mal Lead</label>
-        <textarea
-          value={data.senales_mal_lead || ''}
-          onChange={(e) => onInputChange('senales_mal_lead', e.target.value)}
-          placeholder="¿Cuáles son las red flags? ¿Clientes que mejor evitar?"
-          rows="2"
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Perfil que NO te Interesa</label>
-        <textarea
-          value={data.perfil_no_interesa || ''}
-          onChange={(e) => onInputChange('perfil_no_interesa', e.target.value)}
-          placeholder="¿Qué tipo de cliente definitivamente no es para ti?"
-          rows="2"
-        />
+      <div className="collapsible-section">
+        <button
+          type="button"
+          className="collapsible-header"
+          onClick={() => toggleSection('signals')}
+        >
+          <span>🎲 Identificar Buenos vs Malos Leads (Expandir)</span>
+          <span className="toggle-icon">{expandedSections.signals ? '▼' : '▶'}</span>
+        </button>
+        {expandedSections.signals && (
+          <div className="collapsible-content">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Señales de un Buen Lead</label>
+                <textarea
+                  value={data.senales_buen_lead || ''}
+                  onChange={(e) => onInputChange('senales_buen_lead', e.target.value)}
+                  placeholder="¿Cómo identificas clientes que realmente te necesitan? (características clave)"
+                  rows="2"
+                />
+              </div>
+              <div className="form-group">
+                <label>Red Flags (Evitar)</label>
+                <textarea
+                  value={data.senales_mal_lead || ''}
+                  onChange={(e) => onInputChange('senales_mal_lead', e.target.value)}
+                  placeholder="Características de clientes que mejor evitar"
+                  rows="2"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="help-text">
-        <p>ℹ️ Cuanto más detallado sea tu cliente ideal, mejor podremos crear mensajes que resuenan con él y mejorar tu targeting.</p>
+        <p>ℹ️ Consolidamos 18 campos en 3 secciones. Expande cada una según necesites. Cuanto mejor definas tu cliente ideal, mejor targeting y mensajes lograremos.</p>
       </div>
     </div>
   )
