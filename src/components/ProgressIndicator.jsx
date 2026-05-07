@@ -27,13 +27,17 @@ export default function ProgressIndicator({ progress = 0, variant = 'linear', sh
 
   return (
     <div className="progress-indicator-linear">
+      {showLabel && (
+        <div className="progress-header">
+          <span className="progress-header-label">Progreso</span>
+          <span className="progress-header-value">{displayProgress}%</span>
+        </div>
+      )}
       <div className="progress-bar-linear">
         <div
           className="progress-bar-fill"
           style={{ width: `${displayProgress}%` }}
-        >
-          {showLabel && <span className="progress-label">{displayProgress}%</span>}
-        </div>
+        />
       </div>
     </div>
   )

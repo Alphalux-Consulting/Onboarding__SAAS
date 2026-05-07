@@ -87,7 +87,7 @@ export default function ClientCard({
           onClick={handleViewClick}
           title="Ver detalles"
         >
-          👁️ Ver
+          Ver
         </button>
         <button
           className="btn-small btn-success"
@@ -95,7 +95,7 @@ export default function ClientCard({
           disabled={generatingToken}
           title="Generar y copiar link"
         >
-          {generatingToken ? '⏳' : '🔗'} Link
+          {generatingToken ? 'Generando...' : 'Link'}
         </button>
       </div>
     </div>

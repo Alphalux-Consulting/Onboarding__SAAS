@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('clients') // clients, analytics, export
   const [selectedClient, setSelectedClient] = useState(null)
   const [showNewTokenModal, setShowNewTokenModal] = useState(false)
-  const [generatingToken, setGeneratingToken] = useState(false)
+  const [generatingToken, setGeneratingToken] = useState(null) // stores clientId being generated
   const [exporting, setExporting] = useState(false)
   const [showCreateClientForm, setShowCreateClientForm] = useState(false)
   const [newClientEmpresa, setNewClientEmpresa] = useState('')
@@ -103,8 +103,8 @@ export default function AdminDashboard() {
 
   const handleGenerateToken = async (clientId, clientEmail, clientCompany) => {
     try {
-      setGeneratingToken(true)
-      const token = await generateAccessToken(clientEmail, clientCompany)
+      setGeneratingToken(clientId)
+      const { token, slug } = await generateAccessToken(clientEmail, clientCompany)
 
       // Actualizar tokens locales
       const updatedTokens = { ...tokens }
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
       setTokens(updatedTokens)
 
       // Copiar al portapapeles
-      const fullUrl = `${window.location.origin}/onboarding/${token}`
+      const fullUrl = `${window.location.origin}/onboarding/${slug}`
       navigator.clipboard.writeText(fullUrl)
 
       setError('Token generado y copiado al portapapeles')
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
       console.error('Error generating token:', err)
       setError('Error al generar token')
     } finally {
-      setGeneratingToken(false)
+      setGeneratingToken(null)
     }
   }
 
@@ -230,15 +230,15 @@ export default function AdminDashboard() {
         console.log('Cliente creado:', result.clientId)
 
         // 2. Generar automáticamente el token
-        const token = await generateAccessToken(
+        const { token, slug } = await generateAccessToken(
           newClientEmail || `${newClientEmpresa}@empresa.com`,
           newClientEmpresa
         )
 
-        console.log('Token generado:', token)
+        console.log('Token generado:', token, 'Slug:', slug)
 
         // 3. Crear la URL del enlace
-        const fullUrl = `${window.location.origin}/onboarding/${token}`
+        const fullUrl = `${window.location.origin}/onboarding/${slug}`
         setGeneratedTokenUrl(fullUrl)
         setNewClientName(newClientEmpresa)
 
@@ -333,57 +333,89 @@ export default function AdminDashboard() {
               </div>
               <button
                 className="btn btn-primary"
-                onClick={() => setShowCreateClientForm(!showCreateClientForm)}
+                onClick={() => setShowCreateClientForm(true)}
               >
-                {showCreateClientForm ? '✕ Cancelar' : '+ Crear Cliente'}
+                + Nuevo Cliente
               </button>
             </div>
 
+            {/* Modal Crear Cliente */}
             {showCreateClientForm && (
-              <div className="create-client-form">
-                <h3>Crear Nuevo Cliente</h3>
-                <form onSubmit={handleCreateClient}>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Empresa *</label>
-                      <input
-                        type="text"
-                        placeholder="Nombre de la empresa"
-                        value={newClientEmpresa}
-                        onChange={(e) => setNewClientEmpresa(e.target.value)}
-                        disabled={creatingClient}
-                        required
-                      />
+              <div
+                className="modal-overlay"
+                onClick={(e) => { if (e.target === e.currentTarget) setShowCreateClientForm(false) }}
+              >
+                <div className="modal-content create-client-modal">
+                  <div className="modal-header">
+                    <div className="create-client-modal-title">
+                      <span className="create-client-modal-icon">+</span>
+                      <h2>Nuevo Cliente</h2>
                     </div>
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        placeholder="email@empresa.com"
-                        value={newClientEmail}
-                        onChange={(e) => setNewClientEmail(e.target.value)}
-                        disabled={creatingClient}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Nombre Comercial</label>
-                      <input
-                        type="text"
-                        placeholder="Nombre comercial (opcional)"
-                        value={newClientNombreComercial}
-                        onChange={(e) => setNewClientNombreComercial(e.target.value)}
-                        disabled={creatingClient}
-                      />
-                    </div>
+                    <button
+                      className="modal-close"
+                      onClick={() => setShowCreateClientForm(false)}
+                    >
+                      ×
+                    </button>
                   </div>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={creatingClient}
-                  >
-                    {creatingClient ? 'Creando...' : 'Crear Cliente'}
-                  </button>
-                </form>
+
+                  <div className="create-client-modal-body">
+                    <form onSubmit={handleCreateClient}>
+                      <div className="create-client-fields">
+                        <div className="form-group">
+                          <label>Empresa <span className="field-required">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="Nombre de la empresa"
+                            value={newClientEmpresa}
+                            onChange={(e) => setNewClientEmpresa(e.target.value)}
+                            disabled={creatingClient}
+                            required
+                            autoFocus
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Email</label>
+                          <input
+                            type="email"
+                            placeholder="email@empresa.com"
+                            value={newClientEmail}
+                            onChange={(e) => setNewClientEmail(e.target.value)}
+                            disabled={creatingClient}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Nombre Comercial</label>
+                          <input
+                            type="text"
+                            placeholder="Opcional"
+                            value={newClientNombreComercial}
+                            onChange={(e) => setNewClientNombreComercial(e.target.value)}
+                            disabled={creatingClient}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="create-client-modal-footer">
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => setShowCreateClientForm(false)}
+                          disabled={creatingClient}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={creatingClient}
+                        >
+                          {creatingClient ? 'Creando...' : 'Crear Cliente'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -414,7 +446,7 @@ export default function AdminDashboard() {
                     onViewDetails={setSelectedClient}
                     onGenerateToken={() => handleGenerateToken(client.id, client.email, client.nombre_empresa)}
                     onStatusChange={handleStatusChange}
-                    generatingToken={generatingToken}
+                    generatingToken={generatingToken === client.id}
                   />
                 ))}
             </ClientCardGrid>

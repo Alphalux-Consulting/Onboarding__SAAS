@@ -9,6 +9,7 @@ import {
   uploadClientFile
 } from '../services/clientData'
 import LoadingScreen from '../components/LoadingScreen'
+import Logo from '../components/Logo'
 import './pages.css'
 
 // Componente reutilizable para videos en módulos
@@ -31,6 +32,20 @@ function VideoSection({ videoUrl, title }) {
   )
 }
 
+const STEP_MESSAGES = {
+  1: "Comencemos con lo esencial. Los datos de tu empresa.",
+  2: "Perfecto. Ahora define tu servicio principal con precisión.",
+  3: "Excelente. Tu cliente ideal marcará toda la estrategia.",
+  4: "Tu identidad visual. El lenguaje de tu marca.",
+  5: "Meta Ads: el motor de captación para tu negocio.",
+  6: "Google: visibilidad local y búsqueda activa.",
+  7: "Slack será nuestro espacio de operación diaria.",
+  8: "IA: automatiza y escala tu atención al cliente.",
+  9: "Inspiración y referencias para afinar la estrategia.",
+  10: "Último paso. Agendemos la reunión de inicio.",
+  11: "Onboarding completado. Listo para el lanzamiento."
+}
+
 export default function ClientOnboarding() {
   const navigate = useNavigate()
 
@@ -45,6 +60,7 @@ export default function ClientOnboarding() {
 
   // Estado de formulario
   const [formData, setFormData] = useState({})
+  const [justCompleted, setJustCompleted] = useState(null)
 
   // Inicializar
   useEffect(() => {
@@ -181,6 +197,8 @@ export default function ClientOnboarding() {
 
       // Ir al siguiente paso
       if (currentStep < MODULES.length - 1) {
+        setJustCompleted(currentStep)
+        setTimeout(() => setJustCompleted(null), 800)
         setCurrentStep(currentStep + 1)
         window.scrollTo(0, 0)
       }
@@ -223,51 +241,95 @@ export default function ClientOnboarding() {
     return <LoadingScreen />
   }
 
-  return (
-    <div className="onboarding-container">
-      <div className="onboarding-header">
-        <div className="onboarding-brand">
-          <h1>Alphalux</h1>
-          <p>Onboarding SaaS</p>
-        </div>
-        <div className="onboarding-progress">
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-          </div>
-          <p className="progress-text">{progress}% Completado</p>
-        </div>
+  // Welcome screen — full page, no sidebar
+  if (currentStep === 0) {
+    return (
+      <div className="onboarding-welcome-screen">
+        <ModuleRenderer
+          module={currentModule}
+          data={formData[currentModule.id] || {}}
+          onDataChange={(data) => handleModuleChange(currentModule.id, data)}
+          onInputChange={handleInputChange}
+          onFileUpload={handleFileUpload}
+          isSaving={saving}
+          clientData={clientData}
+          onStartOnboarding={handleStartOnboarding}
+          progress={progress}
+        />
       </div>
+    )
+  }
 
-      <div className="onboarding-content">
-        {/* Barra de paso */}
-        <div className="step-indicator">
-          {MODULES.map((module, idx) => (
-            <div
-              key={module.id}
-              className={`step-dot ${idx === currentStep ? 'active' : ''} ${
-                idx < currentStep ? 'completed' : ''
-              }`}
-              onClick={() => idx < currentStep && setCurrentStep(idx)}
-              title={module.name}
-            >
-              {idx < currentStep ? '✓' : idx + 1}
-            </div>
-          ))}
+  return (
+    <div className="onboarding-layout">
+      {/* Sidebar */}
+      <aside className="onboarding-sidebar">
+        <div className="sidebar-brand">
+          <Logo variant="mark" />
+          <span className="sidebar-brand-name">Alphalux</span>
         </div>
 
-        {/* Contenido del paso */}
-        <div className="step-content">
+        <nav className="sidebar-nav">
+          {MODULES.filter(m => m.id !== 'welcome').map((mod, navIdx) => {
+            const stepIdx = navIdx + 1
+            const hasData = formData[mod.id] && Object.keys(formData[mod.id]).length > 0
+            const isDone = stepIdx < currentStep || hasData
+            const isActive = stepIdx === currentStep
+            const isFlash = justCompleted === stepIdx
+            const stateClass = isActive
+              ? 'sidebar-step--active'
+              : isDone
+              ? 'sidebar-step--done'
+              : 'sidebar-step--pending'
+
+            return (
+              <button
+                key={mod.id}
+                className={`sidebar-step ${stateClass}${isFlash ? ' sidebar-step--flash' : ''}`}
+                onClick={() => (isDone || isActive) && setCurrentStep(stepIdx)}
+                tabIndex={isDone || isActive ? 0 : -1}
+              >
+                <span className="sidebar-step-icon">
+                  {isDone && !isActive ? '✓' : navIdx + 1}
+                </span>
+                <span className="sidebar-step-name">{mod.name}</span>
+              </button>
+            )
+          })}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-track">
+            <div className="sidebar-footer-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <span className="sidebar-footer-pct">{progress}%</span>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="onboarding-main">
+        {STEP_MESSAGES[currentStep] && (
+          <div className="onboarding-step-msg">
+            <span className="step-msg-dot" />
+            {STEP_MESSAGES[currentStep]}
+          </div>
+        )}
+
+        <div className="onboarding-step-wrapper">
           {error && (
             <div className="form-error" style={{ marginBottom: '1.5rem' }}>
-              <span>⚠️</span>
-              <span>{error}</span>
+              <span>⚠️</span> <span>{error}</span>
             </div>
           )}
 
-          <h2 className="step-title">{currentModule.name}</h2>
-          <p className="step-description">{currentModule.description}</p>
+          {currentStep < MODULES.length - 1 && (
+            <div className="step-header">
+              <div className="step-num-badge">Paso {currentStep} / {MODULES.length - 2}</div>
+              <h2 className="step-title">{currentModule.name}</h2>
+              <p className="step-description">{currentModule.description}</p>
+            </div>
+          )}
 
-          {/* Render del módulo específico */}
           <div className="module-form">
             <ModuleRenderer
               module={currentModule}
@@ -279,37 +341,34 @@ export default function ClientOnboarding() {
               clientData={clientData}
               onStartOnboarding={handleStartOnboarding}
               progress={progress}
+              onBackToWelcome={() => setCurrentStep(0)}
             />
           </div>
 
-          {/* Botones de navegación - Hidden on welcome step */}
-          {currentStep > 0 && (
-            <div className="step-navigation">
-              <button
-                className="btn-secondary"
-                onClick={handlePrevious}
-                disabled={currentStep === 0 || saving}
-              >
-                ← Anterior
-              </button>
-
-              <button
-                className="btn-primary"
-                onClick={handleSaveAndNext}
-                disabled={saving}
-              >
-                {saving ? 'Guardando...' : currentStep === MODULES.length - 1 ? 'Completar' : 'Siguiente →'}
-              </button>
-            </div>
-          )}
+          <div className="step-navigation">
+            <button
+              className="btn btn-ghost"
+              onClick={handlePrevious}
+              disabled={currentStep < 1 || saving}
+            >
+              ← Anterior
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleSaveAndNext}
+              disabled={saving}
+            >
+              {saving ? 'Guardando...' : currentStep === MODULES.length - 1 ? 'Completar' : 'Siguiente →'}
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
 
 // Componente para renderizar módulos específicos
-function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUpload, isSaving, clientData, onStartOnboarding, progress }) {
+function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUpload, isSaving, clientData, onStartOnboarding, progress, onBackToWelcome }) {
   switch (module.id) {
     case 'welcome':
       return <WelcomeModule clientData={clientData} onStartOnboarding={onStartOnboarding} progress={progress} />
@@ -334,7 +393,7 @@ function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUploa
     case 'agendamiento':
       return <SchedulingModule data={data} onChange={onDataChange} onInputChange={onInputChange} />
     case 'confirmacion':
-      return <ConfirmationModule data={data} />
+      return <ConfirmationModule data={data} onBackToWelcome={onBackToWelcome} />
     default:
       return <div>Módulo no encontrado</div>
   }
@@ -343,69 +402,96 @@ function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUploa
 // Módulos individuales
 function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
   const companyName = clientData?.nombre_empresa || clientData?.nombre_comercial || ''
-  // Video de bienvenida - URL hardcodeada
   const videoUrl = 'https://www.youtube.com/embed/15cEtTMmvJk'
 
+  const roadmapStages = [
+    { num: 1, icon: '🏢', name: 'Empresa',    desc: 'Datos básicos' },
+    { num: 2, icon: '⭐', name: 'Servicio',   desc: 'Oferta principal' },
+    { num: 3, icon: '🎯', name: 'Cliente',    desc: 'Avatar ideal' },
+    { num: 4, icon: '🎨', name: 'Marca',      desc: 'Identidad visual' },
+    { num: 5, icon: '📘', name: 'Meta Ads',   desc: 'Publicidad social' },
+    { num: 6, icon: '🔍', name: 'Google',     desc: 'Visibilidad local' },
+    { num: 7, icon: '💬', name: 'Slack',      desc: 'Comunicación' },
+    { num: 8, icon: '🤖', name: 'IA',         desc: 'Asistente virtual' },
+    { num: 9, icon: '✨', name: 'Inspiración',desc: 'Referencias' },
+    { num: 10, icon: '📅', name: 'Meeting',   desc: 'Kickoff call' },
+  ]
+
   return (
-    <div className="module-welcome">
-      {/* Welcome Header with Logo */}
-      <div className="welcome-header">
-        <div className="welcome-logo">ALPHALUX</div>
-        <h2 className="welcome-title">Bienvenido al Onboarding</h2>
-        <p className="welcome-subtitle">{companyName ? `Hola ${companyName}` : 'Vamos a empezar tu transformación digital'}</p>
+    <div className="welcome-screen">
+      <div className="welcome-hero">
+        <Logo />
+        {companyName && (
+          <p className="welcome-company-name">— {companyName} —</p>
+        )}
+        <h1 className="welcome-heading">
+          Bienvenido a tu<br />
+          <em>proceso de onboarding</em>
+        </h1>
+        <p className="welcome-subheading">
+          En los próximos pasos construiremos juntos el sistema de captación,
+          conversión e inteligencia artificial de tu negocio.
+        </p>
       </div>
 
-      {/* Video de bienvenida del CEO */}
-      {videoUrl && (
-        <div className="welcome-video">
-          <h4>📹 Mensaje de Bienvenida del Equipo Alphalux</h4>
-          <div className="video-container">
-            <iframe
-              src={videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') ? videoUrl : `https://www.youtube.com/embed/${videoUrl}`}
-              title="Bienvenida Alphalux"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
+      <div className="welcome-video-wrap">
+        <p className="welcome-video-label">Mensaje del equipo Alphalux</p>
+        <div className="video-container">
+          <iframe
+            src={videoUrl}
+            title="Bienvenida Alphalux"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      </div>
+
+      <div className="welcome-meta-strip">
+        <div className="welcome-meta-item">
+          <span className="welcome-meta-val">10</span>
+          <span className="welcome-meta-lbl">etapas</span>
+        </div>
+        <div className="welcome-meta-sep" />
+        <div className="welcome-meta-item">
+          <span className="welcome-meta-val">~30</span>
+          <span className="welcome-meta-lbl">minutos</span>
+        </div>
+        <div className="welcome-meta-sep" />
+        <div className="welcome-meta-item">
+          <span className="welcome-meta-val">Auto</span>
+          <span className="welcome-meta-lbl">guardado</span>
+        </div>
+      </div>
+
+      <div className="welcome-roadmap">
+        <h3 className="welcome-roadmap-title">Tu hoja de ruta</h3>
+        <div className="welcome-stages-grid">
+          {roadmapStages.map(stage => (
+            <div key={stage.num} className="welcome-stage-card">
+              <span className="welcome-stage-num">{stage.num}</span>
+              <span className="welcome-stage-icon">{stage.icon}</span>
+              <span className="welcome-stage-name">{stage.name}</span>
+              <span className="welcome-stage-desc">{stage.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {progress > 0 && (
+        <div className="welcome-progress-returning">
+          <div className="welcome-progress-track">
+            <div className="welcome-progress-fill" style={{ width: `${progress}%` }} />
           </div>
+          <p className="welcome-progress-text">Progreso guardado: <strong>{progress}%</strong></p>
         </div>
       )}
 
-      {/* Main Welcome Message with Process Explanation */}
-      <div className="welcome-message">
-        <h3>Explicación del Proceso</h3>
-        <p>
-          Bienvenido al proceso de onboarding de Alphalux. En los próximos pasos vamos a recopilar toda la información necesaria para construir tu sistema de captación, conversión e inteligencia artificial de forma precisa.
-        </p>
-        <p>
-          <strong>Cuanto mejor completes esta información, más rápido y mejor podremos lanzar tu infraestructura.</strong>
-        </p>
-        <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#d0d0d0' }}>
-          Tiempo estimado: <strong>30-45 minutos</strong> | Módulos: <strong>11 secciones</strong> | Tu progreso se guarda automáticamente
-        </p>
-      </div>
-
-      {/* Progress Bar showing the journey */}
-      <div className="welcome-progress-section">
-        <div className="progress-title">Tu Progreso en el Onboarding</div>
-        <div className="progress-bar-container">
-          <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
-        </div>
-        <div className="progress-info">
-          <span>{Math.round(progress)}% completado</span>
-          <span className="progress-steps">Paso 1 de 11</span>
-        </div>
-      </div>
-
-      {/* Call-to-Action Button */}
-      <div className="welcome-actions">
-        <button
-          type="button"
-          className="welcome-btn-primary"
-          onClick={onStartOnboarding}
-        >
-          ▶ Empezar Onboarding
+      <div className="welcome-cta-section">
+        <button className="welcome-start-btn" onClick={onStartOnboarding}>
+          {progress > 0 ? 'Continuar Onboarding →' : 'Comenzar Ahora →'}
         </button>
+        <p className="welcome-cta-note">Tu progreso se guarda automáticamente en cada paso</p>
       </div>
     </div>
   )
@@ -423,6 +509,15 @@ function BasicInfoModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Esta es la base de todo. Con estos datos construimos tu identidad digital, configuramos tus plataformas y personalizamos cada parte de la estrategia con el nombre, sector y presencia real de tu negocio.
+        </p>
+        <p className="module-context-instruction">
+          Completa al menos el nombre comercial y el sector. Expande las secciones de ubicación, contacto y presencia online para un perfil completo.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Nombre Comercial *</label>
         <input
@@ -619,9 +714,6 @@ function BasicInfoModule({ data, onInputChange }) {
         )}
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Expandir las secciones según necesites. La información se guarda automáticamente.</p>
-      </div>
     </div>
   )
 }
@@ -638,6 +730,15 @@ function ServiceModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Tu servicio principal es el núcleo de toda la estrategia de captación. Cuanto más claro lo definamos, más precisos serán tus anuncios, tus mensajes y tu posicionamiento en el mercado.
+        </p>
+        <p className="module-context-instruction">
+          Enfócate en UN solo servicio — el que quieres escalar ahora. Sé específico en la descripción, precios y diferenciales. Más detalle = mejor resultado.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Nombre del Servicio Principal *</label>
         <input
@@ -842,9 +943,6 @@ function ServiceModule({ data, onInputChange }) {
         )}
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Consolidamos 14 campos en 4 secciones. Expande cada una según necesites. Cuanto más detallado sea este servicio, mejor podremos representarte en el mercado.</p>
-      </div>
     </div>
   )
 }
@@ -861,6 +959,15 @@ function IdealClientModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          El avatar de cliente define a quién le hablamos, cómo lo hacemos y dónde lo encontramos. Sin este perfil, la publicidad pierde foco y los mensajes no conectan con las personas correctas.
+        </p>
+        <p className="module-context-instruction">
+          Describe a tu cliente ideal con el mayor detalle posible. No temas ser específico — cuanto más preciso seas, mejor será el targeting y más relevantes serán los anuncios.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Cliente Ideal - Descripción General *</label>
         <textarea
@@ -972,9 +1079,6 @@ function IdealClientModule({ data, onInputChange }) {
         )}
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Consolidamos 18 campos en 3 secciones. Expande cada una según necesites. Cuanto mejor definas tu cliente ideal, mejor targeting y mensajes lograremos.</p>
-      </div>
     </div>
   )
 }
@@ -996,6 +1100,15 @@ function BrandModule({ data, onChange, onFileUpload, isSaving }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Tu marca es lo primero que percibe el cliente. Necesitamos conocer tu lenguaje visual para que cada pieza de contenido, anuncio y comunicación sea coherente con tu identidad y genere reconocimiento.
+        </p>
+        <p className="module-context-instruction">
+          Comparte colores, tipografías y estilo visual. Sube tus archivos de marca — logos, imágenes, videos — para que trabajemos siempre con los materiales originales.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Paleta de Colores *</label>
         <textarea
@@ -1084,9 +1197,6 @@ function BrandModule({ data, onChange, onFileUpload, isSaving }) {
         )}
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Tu identidad visual es fundamental para la estrategia de marketing.</p>
-      </div>
     </div>
   )
 }
@@ -1101,6 +1211,15 @@ function MetaModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Meta es el principal canal de captación de clientes nuevos. Con tus datos configuramos correctamente las campañas, el píxel de seguimiento y el Business Manager para maximizar cada inversión en publicidad.
+        </p>
+        <p className="module-context-instruction">
+          Mira primero el tutorial completo, luego indica si ya tienes activos en Meta o si lo configuraremos desde cero.
+        </p>
+      </div>
+
       {/* Video Tutorial Meta */}
       <VideoSection
         videoUrl={metaVideoUrl}
@@ -1251,9 +1370,6 @@ function MetaModule({ data, onInputChange }) {
         </div>
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Los datos de Meta/Facebook Ads son cruciales para la publicidad, retargeting y análisis de conversion.</p>
-      </div>
     </div>
   )
 }
@@ -1268,6 +1384,15 @@ function GoogleModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Google captura clientes que ya están buscando activamente lo que ofreces — es intención de compra en tiempo real. Google Maps, por su parte, aumenta tu visibilidad local y genera confianza en quienes te encuentran por primera vez.
+        </p>
+        <p className="module-context-instruction">
+          Si ya tienes cuenta de Google Ads o perfil en Google Maps, comparte los datos de acceso. Si no tienes, lo configuraremos juntos desde el inicio.
+        </p>
+      </div>
+
       {/* Video Tutorial Google */}
       <VideoSection
         videoUrl={googleVideoUrl}
@@ -1426,9 +1551,6 @@ function GoogleModule({ data, onInputChange }) {
         </div>
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Google Ads y Maps son fundamentales para visibilidad online, SEO local y atracción de clientes cercanos.</p>
-      </div>
     </div>
   )
 }
@@ -1446,6 +1568,15 @@ function SlackModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Slack será nuestro espacio de trabajo compartido. Aquí coordinamos tareas, compartimos avances, resolvemos dudas y gestionamos toda la implementación en tiempo real — sin perder información en emails o mensajes dispersos.
+        </p>
+        <p className="module-context-instruction">
+          Mira el tutorial de configuración, luego añade el email principal del workspace y los emails del equipo que participará.
+        </p>
+      </div>
+
       {/* Video Tutorial Slack */}
       <VideoSection
         videoUrl={slackVideoUrl}
@@ -1612,9 +1743,6 @@ function SlackModule({ data, onInputChange }) {
         </div>
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Slack será nuestro canal principal de comunicación. Aquí coordinaremos actualizaciones, cambios y apoyaremos tu implementación.</p>
-      </div>
     </div>
   )
 }
@@ -1625,6 +1753,15 @@ function AIModule({ data, onInputChange, onFileUpload }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Un asistente de IA bien configurado puede responder el 70% de las consultas de forma automática, 24 horas al día. Libera tiempo de tu equipo y garantiza que ningún lead quede sin atención, incluso fuera de horario.
+        </p>
+        <p className="module-context-instruction">
+          Indica si quieres implementar IA ahora o después. Si decides avanzar, configura nombre, tono, canal principal y la base de conocimiento que usará el asistente.
+        </p>
+      </div>
+
       {/* Video Tutorial IA */}
       <VideoSection
         videoUrl={iaVideoUrl}
@@ -1852,9 +1989,6 @@ function AIModule({ data, onInputChange, onFileUpload }) {
         </>
       )}
 
-      <div className="help-text">
-        <p>ℹ️ La IA puede automatizar gran parte de tus conversaciones y mejorar significativamente tu atención al cliente 24/7.</p>
-      </div>
     </div>
   )
 }
@@ -1862,6 +1996,15 @@ function AIModule({ data, onInputChange, onFileUpload }) {
 function InspirationModule({ data, onInputChange }) {
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          Las referencias son la brújula creativa del proyecto. Nos ayudan a entender tu visión estética, el tono que buscas proyectar y el posicionamiento que quieres alcanzar — sin tener que adivinar.
+        </p>
+        <p className="module-context-instruction">
+          Comparte webs, anuncios, marcas y competidores que te sirvan de referencia. No necesitas tenerlos todos — comparte lo que tengas en mente.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Webs de Referencia</label>
         <textarea
@@ -1947,9 +2090,6 @@ function InspirationModule({ data, onInputChange }) {
         </p>
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ Esta inspiración nos ayudará a crear una estrategia coherente con tu visión y captar exactamente el esencia de tu marca.</p>
-      </div>
     </div>
   )
 }
@@ -1965,6 +2105,15 @@ function SchedulingModule({ data, onInputChange }) {
 
   return (
     <div className="module-fields">
+      <div className="module-context">
+        <p className="module-context-why">
+          El meeting de kickoff es el punto de partida de toda la implementación. En esta sesión conocemos tu negocio en profundidad, resolvemos las últimas dudas y alineamos la estrategia antes de lanzar.
+        </p>
+        <p className="module-context-instruction">
+          Elige la opción que te resulte más cómoda — calendario o WhatsApp — para reservar tu sesión de inicio con el equipo.
+        </p>
+      </div>
+
       <div className="form-group">
         <label>Opción 1: Agendar por Calendario</label>
         <p className="field-description">Haz clic en el botón para reservar tu meeting de kickoff con nuestro equipo:</p>
@@ -2010,14 +2159,11 @@ function SchedulingModule({ data, onInputChange }) {
         </select>
       </div>
 
-      <div className="help-text">
-        <p>ℹ️ El meeting nos ayudará a conocer mejor tus necesidades y dar el siguiente paso en tu implementación de Alphalux.</p>
-      </div>
     </div>
   )
 }
 
-function ConfirmationModule({ data }) {
+function ConfirmationModule({ data, onBackToWelcome }) {
   const completedModules = MODULES.filter(m => data[m.id] && Object.keys(data[m.id]).length > 0)
   const progress = Math.round((completedModules.length / (MODULES.length - 1)) * 100)
 
@@ -2067,9 +2213,9 @@ function ConfirmationModule({ data }) {
       </div>
 
       <div className="confirmation-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-        <a href="/" className="btn-primary">
+        <button className="btn-primary" onClick={onBackToWelcome}>
           ← Volver al Inicio
-        </a>
+        </button>
         <a
           href={`https://wa.me/?text=Hola Alphalux, acabo de completar mi onboarding.`}
           target="_blank"
