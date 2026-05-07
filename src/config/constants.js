@@ -23,7 +23,6 @@ export const MODULES = [
       'whatsapp',
       'horarios',
       'web',
-      'google_maps',
       'instagram',
       'facebook',
       'otros_links'
@@ -75,28 +74,15 @@ export const MODULES = [
     order: 3,
     fields: [
       'cliente_ideal',
-      'edad',
-      'genero',
-      'ubicacion',
-      'nivel_socioeconomico',
-      'profesion',
-      'situacion_actual',
       'problemas_principales',
-      'dolores_emocionales',
-      'miedos',
+      'barreras',
       'deseos',
-      'motivaciones',
-      'objeciones',
-      'que_probo_antes',
-      'que_le_frena',
       'necesita_escuchar',
       'senales_buen_lead',
-      'senales_mal_lead',
-      'perfil_no_interesa'
+      'senales_mal_lead'
     ],
     requiredFields: [
       'cliente_ideal',
-      'edad',
       'problemas_principales',
       'deseos',
       'senales_buen_lead'
@@ -143,21 +129,37 @@ export const MODULES = [
   },
   {
     id: 'google',
-    name: 'Google Ads & Maps',
-    description: 'Configuración Google',
+    name: '🌐 Entorno Google',
+    description: 'Configuración Google Ads, Maps y Business Profile',
     order: 6,
     fields: [
-      'google_ads_id',
-      'email_acceso_ads',
-      'confirmacion_ads',
+      'entorno_google_status',
       'google_maps_link',
-      'email_acceso_maps',
-      'confirmacion_maps'
+      'entorno_google_help',
+      'entorno_google_confirmation'
     ],
     requiredFields: [
-      'confirmacion_ads',
-      'confirmacion_maps'
-    ]
+      'entorno_google_status',
+      'entorno_google_confirmation'
+    ],
+    conditionalFields: {
+      entorno_google_status: {
+        si: {
+          description: 'User has Google configured',
+          optionalFields: ['google_maps_link']
+        },
+        no: {
+          description: 'User needs help with setup',
+          helpFlag: true,
+          optionalFields: []
+        },
+        no_seguro: {
+          description: 'User is unsure',
+          helpFlag: null,
+          optionalFields: ['google_maps_link']
+        }
+      }
+    }
   },
   {
     id: 'slack',
@@ -165,19 +167,17 @@ export const MODULES = [
     description: 'Configuración operativa',
     order: 7,
     fields: [
-      'email_principal',
-      'emails_equipo',
-      'responsable_principal',
-      'responsable_suplente',
-      'horario_respuesta',
-      'tipos_notificaciones',
       'tutorial_visto',
-      'completado',
-      'necesita_ayuda'
+      'email_principal_empresa',
+      'emails_equipo',
+      'slack_status',
+      'slack_needs_help'
     ],
     requiredFields: [
-      'email_principal',
-      'responsable_principal'
+      'tutorial_visto',
+      'email_principal_empresa',
+      'emails_equipo',
+      'slack_status'
     ]
   },
   {
@@ -188,19 +188,16 @@ export const MODULES = [
     fields: [
       'implementar_ia',
       'nombre_asistente',
-      'canal_principal',
-      'linea_telefonica',
-      'linea_existe',
-      'linea_actual_activa',
-      'whatsapp_tipo',
+      'objetivo_principal',
       'tono',
       'que_responder',
       'que_no_responder',
       'cuando_derivar',
       'datos_recoger',
-      'objetivo_principal',
       'base_conocimiento',
       'base_conocimiento_texto',
+      'base_conocimiento_prompt',
+      'base_conocimiento_archivo_nombre',
       'base_conocimiento_archivo_url'
     ],
     requiredFields: [
@@ -209,7 +206,7 @@ export const MODULES = [
     conditionalFields: {
       implementar_ia: {
         value: true,
-        fields: ['nombre_asistente', 'canal_principal', 'base_conocimiento']
+        fields: ['nombre_asistente', 'objetivo_principal', 'tono', 'que_responder', 'base_conocimiento']
       }
     }
   },
@@ -221,36 +218,23 @@ export const MODULES = [
     fields: [
       'webs_referencia',
       'anuncios_gustan',
-      'competidores',
+      'competencia_analizar',
       'marcas_gustan',
       'marcas_no_parecer',
-      'tono_ejemplos',
+      'elementos_que_gustan',
       'comentarios_adicionales'
     ],
-    requiredFields: [
-      'webs_referencia'
-    ]
+    requiredFields: []
   },
   {
     id: 'agendamiento',
-    name: 'Agendar Meeting',
-    description: 'Reserva tu sesión',
+    name: 'Agendar meeting de embarque',
+    description: 'Reserva tu sesión de estrategia',
     order: 10,
     fields: [
-      'meeting_agendado',
-      'fecha_agendamiento',
-      'hora_agendamiento',
       'calendario_link'
     ],
-    requiredFields: [
-      'meeting_agendado'
-    ],
-    conditionalFields: {
-      meeting_agendado: {
-        value: true,
-        fields: ['fecha_agendamiento', 'hora_agendamiento']
-      }
-    }
+    requiredFields: []
   },
   {
     id: 'confirmacion',

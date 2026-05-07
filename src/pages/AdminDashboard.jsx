@@ -51,10 +51,15 @@ export default function AdminDashboard() {
     initializeDashboard()
   }, [])
 
-  // Auto-update status to "completado" when progress reaches 100% and status is "en_proceso"
+  // Auto-update client status based on progress
   useEffect(() => {
     clients.forEach(client => {
-      if (client.progreso === 100 && client.estado_cliente === 'en_proceso') {
+      // Update to "en_proceso" when progress > 0 and currently "no_iniciado"
+      if (client.progreso > 0 && client.estado_cliente === 'no_iniciado') {
+        handleUpdateClientStatus(client.id, 'en_proceso')
+      }
+      // Update to "completado" when progress reaches 100% and status is "en_proceso"
+      else if (client.progreso === 100 && client.estado_cliente === 'en_proceso') {
         handleUpdateClientStatus(client.id, 'completado')
       }
     })
@@ -591,27 +596,16 @@ export default function AdminDashboard() {
               <button className="modal-close" onClick={() => setSelectedClient(null)}>×</button>
             </div>
 
-            <div className="modal-body" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <div className="modal-body modal-body-scrollable">
               {/* Estado del Onboarding */}
               <div className="client-detail-section">
                 <h3>📊 Estado del Onboarding</h3>
                 <div className="detail-grid">
                   <div className="detail-item">
                     <label>Progreso Total</label>
-                    <div style={{ marginTop: '0.5rem' }}>
-                      <div style={{ background: '#333', borderRadius: '4px', height: '24px', overflow: 'hidden' }}>
-                        <div style={{
-                          background: 'linear-gradient(90deg, #d4af37, #e5c158)',
-                          height: '100%',
-                          width: `${selectedClient.progreso || 0}%`,
-                          transition: 'width 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem',
-                          color: '#000',
-                          fontWeight: 'bold'
-                        }}>
+                    <div className="mt-0-5rem">
+                      <div className="progress-bar-container">
+                        <div className="progress-bar-fill-admin" style={{ width: `${selectedClient.progreso || 0}%` }}>
                           {(selectedClient.progreso || 0) > 5 && `${selectedClient.progreso || 0}%`}
                         </div>
                       </div>
@@ -619,7 +613,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="detail-item">
                     <label>Estado Cliente</label>
-                    <p style={{ fontSize: '1rem', fontWeight: 'bold', color: selectedClient.estado_cliente === 'completado' ? '#d4af37' : '#f5f5f5' }}>
+                    <p className="font-bold" style={{ fontSize: '1rem', color: selectedClient.estado_cliente === 'completado' ? '#d4af37' : '#f5f5f5' }}>
                       {selectedClient.estado_cliente || 'No iniciado'}
                     </p>
                   </div>
@@ -629,7 +623,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="detail-item">
                     <label>Última Actualización</label>
-                    <p style={{ fontSize: '0.9rem' }}>
+                    <p className="text-sm">
                       {selectedClient.updatedAt
                         ? new Date(selectedClient.updatedAt.toDate?.() || selectedClient.updatedAt).toLocaleString()
                         : '-'}
@@ -680,11 +674,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="detail-item">
                     <label>Sitio Web</label>
-                    <p>{selectedClient.web ? <a href={selectedClient.web} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>{selectedClient.web}</a> : '-'}</p>
-                  </div>
-                  <div className="detail-item">
-                    <label>Google Maps</label>
-                    <p>{selectedClient.google_maps ? <a href={selectedClient.google_maps} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>Ver en Maps</a> : '-'}</p>
+                    <p>{selectedClient.web ? <a href={selectedClient.web} target="_blank" rel="noopener noreferrer" className="link-gold">{selectedClient.web}</a> : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -695,11 +685,11 @@ export default function AdminDashboard() {
                 <div className="detail-grid">
                   <div className="detail-item">
                     <label>Instagram</label>
-                    <p>{selectedClient.instagram ? <a href={`https://instagram.com/${selectedClient.instagram}`} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>@{selectedClient.instagram}</a> : '-'}</p>
+                    <p>{selectedClient.instagram ? <a href={`https://instagram.com/${selectedClient.instagram}`} target="_blank" rel="noopener noreferrer" className="link-gold">@{selectedClient.instagram}</a> : '-'}</p>
                   </div>
                   <div className="detail-item">
                     <label>Facebook</label>
-                    <p>{selectedClient.facebook ? <a href={selectedClient.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>Ver Página</a> : '-'}</p>
+                    <p>{selectedClient.facebook ? <a href={selectedClient.facebook} target="_blank" rel="noopener noreferrer" className="link-gold">Ver Página</a> : '-'}</p>
                   </div>
                   <div className="detail-item">
                     <label>Otros Enlaces</label>
@@ -716,7 +706,7 @@ export default function AdminDashboard() {
               {selectedClient.servicio_principal && (
                 <div className="client-detail-section">
                   <h3>⭐ Servicio Principal</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.servicio_principal.nombre_servicio && (
                       <div><label>Nombre del Servicio:</label><p>{selectedClient.servicio_principal.nombre_servicio}</p></div>
                     )}
@@ -770,7 +760,7 @@ export default function AdminDashboard() {
               {selectedClient.cliente_ideal && (
                 <div className="client-detail-section">
                   <h3>🎯 Cliente Ideal / Avatar</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.cliente_ideal.cliente_ideal && (
                       <div><label>Cliente Ideal:</label><p>{selectedClient.cliente_ideal.cliente_ideal}</p></div>
                     )}
@@ -818,7 +808,7 @@ export default function AdminDashboard() {
               {selectedClient.marca && (
                 <div className="client-detail-section">
                   <h3>🎨 Marca e Identidad Visual</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.marca.paleta_colores && (
                       <div><label>Paleta de Colores:</label><p>{selectedClient.marca.paleta_colores}</p></div>
                     )}
@@ -845,7 +835,7 @@ export default function AdminDashboard() {
               {selectedClient.meta && (
                 <div className="client-detail-section">
                   <h3>📘 Entorno Meta / Facebook Ads</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.meta.tiene_activos !== undefined && (
                       <div><label>¿Tiene Activos?:</label><p>{selectedClient.meta.tiene_activos ? 'Sí' : 'No'}</p></div>
                     )}
@@ -878,24 +868,39 @@ export default function AdminDashboard() {
               {selectedClient.google && (
                 <div className="client-detail-section">
                   <h3>🔍 Entorno Google</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {selectedClient.google.google_ads_id && (
-                      <div><label>Google Ads ID:</label><p>{selectedClient.google.google_ads_id}</p></div>
+                  <div className="flex-column-gap">
+                    {selectedClient.google.entorno_google_status && (
+                      <div>
+                        <label>Situación Actual:</label>
+                        <p>
+                          {selectedClient.google.entorno_google_status === 'si' && '✅ Tiene Google configurado'}
+                          {selectedClient.google.entorno_google_status === 'no' && '❌ Necesita ayuda para configurar'}
+                          {selectedClient.google.entorno_google_status === 'no_seguro' && '❓ No está seguro'}
+                        </p>
+                      </div>
                     )}
-                    {selectedClient.google.email_acceso_ads && (
-                      <div><label>Email Google Ads:</label><p>{selectedClient.google.email_acceso_ads}</p></div>
-                    )}
-                    {selectedClient.google.confirmacion_ads !== undefined && (
-                      <div><label>Confirmación Ads:</label><p>{selectedClient.google.confirmacion_ads ? '✓ Sí' : '✗ No'}</p></div>
+                    {selectedClient.google.entorno_google_help !== undefined && (
+                      <div>
+                        <label>Estado de Soporte:</label>
+                        <p>
+                          {selectedClient.google.entorno_google_help === true && '⚠️ Cliente necesita asistencia de setup'}
+                          {selectedClient.google.entorno_google_help === false && '✓ Cliente tiene todo configurado'}
+                          {selectedClient.google.entorno_google_help === null && '❓ Cliente aún indeciso'}
+                        </p>
+                      </div>
                     )}
                     {selectedClient.google.google_maps_link && (
-                      <div><label>Google Maps Link:</label><p><a href={selectedClient.google.google_maps_link} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>Ver</a></p></div>
+                      <div>
+                        <label>Google Business Profile:</label>
+                        <p>
+                          <a href={selectedClient.google.google_maps_link} target="_blank" rel="noopener noreferrer" className="link-gold">
+                            📍 Ver en Google Maps
+                          </a>
+                        </p>
+                      </div>
                     )}
-                    {selectedClient.google.email_acceso_maps && (
-                      <div><label>Email Google Maps:</label><p>{selectedClient.google.email_acceso_maps}</p></div>
-                    )}
-                    {selectedClient.google.confirmacion_maps !== undefined && (
-                      <div><label>Confirmación Maps:</label><p>{selectedClient.google.confirmacion_maps ? '✓ Sí' : '✗ No'}</p></div>
+                    {selectedClient.google.entorno_google_confirmation && (
+                      <div><label>Confirmación:</label><p>✓ Confirmado</p></div>
                     )}
                   </div>
                 </div>
@@ -905,24 +910,21 @@ export default function AdminDashboard() {
               {selectedClient.slack && (
                 <div className="client-detail-section">
                   <h3>💬 Slack / Comunicación Operativa</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {selectedClient.slack.email_principal && (
-                      <div><label>Email Principal:</label><p>{selectedClient.slack.email_principal}</p></div>
+                  <div className="flex-column-gap">
+                    {selectedClient.slack.tutorial_visto && (
+                      <div><label>Tutorial Visto:</label><p>{selectedClient.slack.tutorial_visto ? '✓ Sí' : '✗ No'}</p></div>
+                    )}
+                    {selectedClient.slack.email_principal_empresa && (
+                      <div><label>Email Principal Empresa:</label><p>{selectedClient.slack.email_principal_empresa}</p></div>
                     )}
                     {selectedClient.slack.emails_equipo && (
-                      <div><label>Emails del Equipo:</label><p>{selectedClient.slack.emails_equipo}</p></div>
+                      <div><label>Emails del Equipo:</label><p>{selectedClient.slack.emails_equipo.split('\n').join(', ')}</p></div>
                     )}
-                    {selectedClient.slack.responsable_principal && (
-                      <div><label>Responsable Principal:</label><p>{selectedClient.slack.responsable_principal}</p></div>
+                    {selectedClient.slack.slack_status && (
+                      <div><label>Estado Slack:</label><p>{selectedClient.slack.slack_status === 'completado' ? '✓ Completado' : '🆘 Necesita Ayuda'}</p></div>
                     )}
-                    {selectedClient.slack.responsable_suplente && (
-                      <div><label>Responsable Suplente:</label><p>{selectedClient.slack.responsable_suplente}</p></div>
-                    )}
-                    {selectedClient.slack.horario_respuesta && (
-                      <div><label>Horario de Respuesta:</label><p>{selectedClient.slack.horario_respuesta}</p></div>
-                    )}
-                    {selectedClient.slack.tipos_notificaciones && (
-                      <div><label>Tipos de Notificaciones:</label><p>{selectedClient.slack.tipos_notificaciones}</p></div>
+                    {selectedClient.slack.slack_needs_help && (
+                      <div><label>Requiere Asistencia:</label><p style={{color: '#ff9800', fontWeight: 'bold'}}>⚠️ Sí, cliente necesita ayuda</p></div>
                     )}
                   </div>
                 </div>
@@ -932,51 +934,39 @@ export default function AdminDashboard() {
               {selectedClient.ia && (
                 <div className="client-detail-section">
                   <h3>🤖 IA / Asistente Virtual</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.ia.implementar_ia !== undefined && (
-                      <div><label>¿Implementar IA?:</label><p>{selectedClient.ia.implementar_ia ? 'Sí' : 'No'}</p></div>
+                      <div><label>¿Implementar IA?:</label><p>{selectedClient.ia.implementar_ia ? '✓ Sí' : '✗ No'}</p></div>
                     )}
                     {selectedClient.ia.nombre_asistente && (
                       <div><label>Nombre del Asistente:</label><p>{selectedClient.ia.nombre_asistente}</p></div>
                     )}
-                    {selectedClient.ia.canal_principal && (
-                      <div><label>Canal Principal:</label><p>{selectedClient.ia.canal_principal}</p></div>
-                    )}
-                    {selectedClient.ia.linea_telefonica && (
-                      <div><label>Línea Telefónica:</label><p>{selectedClient.ia.linea_telefonica}</p></div>
-                    )}
-                    {selectedClient.ia.linea_existe !== undefined && (
-                      <div><label>Línea Existe:</label><p>{selectedClient.ia.linea_existe ? 'Sí' : 'No'}</p></div>
-                    )}
-                    {selectedClient.ia.linea_actual_activa !== undefined && (
-                      <div><label>Línea Actual Activa:</label><p>{selectedClient.ia.linea_actual_activa ? 'Sí' : 'No'}</p></div>
-                    )}
-                    {selectedClient.ia.whatsapp_tipo && (
-                      <div><label>Tipo de WhatsApp:</label><p>{selectedClient.ia.whatsapp_tipo}</p></div>
+                    {selectedClient.ia.objetivo_principal && (
+                      <div><label>Objetivo Principal:</label><p>{selectedClient.ia.objetivo_principal}</p></div>
                     )}
                     {selectedClient.ia.tono && (
                       <div><label>Tono de Comunicación:</label><p>{selectedClient.ia.tono}</p></div>
                     )}
                     {selectedClient.ia.que_responder && (
-                      <div><label>Qué Responder:</label><p>{selectedClient.ia.que_responder}</p></div>
+                      <div><label>Qué Debe Responder:</label><p>{selectedClient.ia.que_responder}</p></div>
                     )}
                     {selectedClient.ia.que_no_responder && (
-                      <div><label>Qué NO Responder:</label><p>{selectedClient.ia.que_no_responder}</p></div>
+                      <div><label>Qué NO Debe Responder:</label><p>{selectedClient.ia.que_no_responder}</p></div>
                     )}
                     {selectedClient.ia.cuando_derivar && (
-                      <div><label>Cuándo Derivar:</label><p>{selectedClient.ia.cuando_derivar}</p></div>
+                      <div><label>Cuándo Derivar a Humano:</label><p>{selectedClient.ia.cuando_derivar}</p></div>
                     )}
                     {selectedClient.ia.datos_recoger && (
-                      <div><label>Datos a Recoger:</label><p>{selectedClient.ia.datos_recoger}</p></div>
-                    )}
-                    {selectedClient.ia.objetivo_principal && (
-                      <div><label>Objetivo Principal:</label><p>{selectedClient.ia.objetivo_principal}</p></div>
+                      <div><label>Datos a Recopilar:</label><p>{selectedClient.ia.datos_recoger}</p></div>
                     )}
                     {selectedClient.ia.base_conocimiento && (
-                      <div><label>Tipo Base de Conocimiento:</label><p>{selectedClient.ia.base_conocimiento}</p></div>
+                      <div><label>Tipo de Base de Conocimiento:</label><p>{selectedClient.ia.base_conocimiento === 'texto' ? '📝 Texto Directo' : selectedClient.ia.base_conocimiento === 'prompt' ? '🤖 Prompt ChatGPT' : '📁 Archivo Cargado'}</p></div>
                     )}
                     {selectedClient.ia.base_conocimiento_texto && (
-                      <div><label>Base de Conocimiento (Texto):</label><p>{selectedClient.ia.base_conocimiento_texto}</p></div>
+                      <div><label>Contenido (Opción A - Texto):</label><p>{selectedClient.ia.base_conocimiento_texto}</p></div>
+                    )}
+                    {selectedClient.ia.base_conocimiento_archivo_nombre && (
+                      <div><label>Archivo Cargado (Opción C):</label><p>📎 {selectedClient.ia.base_conocimiento_archivo_nombre}</p></div>
                     )}
                   </div>
                 </div>
@@ -986,7 +976,7 @@ export default function AdminDashboard() {
               {selectedClient.inspiracion && (
                 <div className="client-detail-section">
                   <h3>✨ Inspiración y Referencias</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.inspiracion.webs_referencia && (
                       <div><label>Webs de Referencia:</label><p>{selectedClient.inspiracion.webs_referencia}</p></div>
                     )}
@@ -1016,7 +1006,7 @@ export default function AdminDashboard() {
               {selectedClient.agendamiento && (
                 <div className="client-detail-section">
                   <h3>📅 Agendamiento de Meeting</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="flex-column-gap">
                     {selectedClient.agendamiento.meeting_agendado !== undefined && (
                       <div><label>Meeting Agendado:</label><p>{selectedClient.agendamiento.meeting_agendado ? 'Sí' : 'No'}</p></div>
                     )}
@@ -1027,7 +1017,7 @@ export default function AdminDashboard() {
                       <div><label>Hora:</label><p>{selectedClient.agendamiento.hora_agendamiento}</p></div>
                     )}
                     {selectedClient.agendamiento.calendario_link && (
-                      <div><label>Link Calendario:</label><p><a href={selectedClient.agendamiento.calendario_link} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>Agendar</a></p></div>
+                      <div><label>Link Calendario:</label><p><a href={selectedClient.agendamiento.calendario_link} target="_blank" rel="noopener noreferrer" className="link-gold">Agendar</a></p></div>
                     )}
                   </div>
                 </div>
@@ -1036,18 +1026,17 @@ export default function AdminDashboard() {
               {/* Generar Link de Acceso */}
               <div className="client-detail-section">
                 <h3>🔗 Generar Link de Acceso</h3>
-                <p style={{ marginBottom: '1rem', color: '#d0d0d0' }}>
+                <p className="mb-1rem text-xs-secondary">
                   Genera un nuevo link de invitación para este cliente. El link se copiará automáticamente al portapapeles.
                 </p>
                 <button
-                  className="btn-primary"
+                  className="btn-primary w-100"
                   onClick={() => handleGenerateToken(
                     selectedClient.id,
                     selectedClient.email,
                     selectedClient.nombre_empresa
                   )}
                   disabled={generatingToken}
-                  style={{ width: '100%' }}
                 >
                   {generatingToken ? '⏳ Generando...' : '🔗 Generar Nuevo Link'}
                 </button>
@@ -1068,11 +1057,11 @@ export default function AdminDashboard() {
 
             <div className="modal-body">
               <p>Se generará un nuevo link para {selectedClient.nombre_empresa || selectedClient.nombre_comercial}</p>
-              <p style={{ fontSize: '0.9rem', color: '#d0d0d0' }}>
+              <p className="text-sm-secondary">
                 El link será válido por 30 días.
               </p>
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <div className="flex-row-gap-mt">
                 <button
                   className="btn-primary"
                   onClick={() => handleGenerateToken(
@@ -1099,37 +1088,27 @@ export default function AdminDashboard() {
       {/* Modal de Token Generado Exitosamente */}
       {showTokenSuccess && (
         <div className="modal-overlay" onClick={() => setShowTokenSuccess(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+          <div className="modal-content modal-success-box" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>✓ Cliente Creado Exitosamente</h2>
               <button className="modal-close" onClick={() => setShowTokenSuccess(false)}>×</button>
             </div>
 
             <div className="modal-body">
-              <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ marginBottom: '0.5rem' }}>
+              <div className="mb-1-5rem">
+                <p className="mb-0-5rem">
                   <strong>Empresa:</strong> {newClientName}
                 </p>
-                <p style={{ fontSize: '0.9rem', color: '#d0d0d0', marginBottom: '1.5rem' }}>
+                <p className="text-sm-secondary mb-1-5rem">
                   El enlace ha sido copiado al portapapeles automáticamente.
                 </p>
               </div>
 
-              <div style={{
-                background: 'rgba(0, 0, 0, 0.5)',
-                border: '1px solid #d4af37',
-                borderRadius: '6px',
-                padding: '1rem',
-                marginBottom: '1.5rem',
-                wordBreak: 'break-all',
-                fontFamily: 'monospace',
-                fontSize: '0.85rem',
-                color: '#d4af37'
-              }}>
+              <div className="token-code-box">
                 {generatedTokenUrl}
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+              <div className="flex-column-gap">
                 <button
                   className="btn-primary"
                   onClick={async () => {
@@ -1147,7 +1126,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <p style={{ fontSize: '0.8rem', color: '#a0a0a0', marginTop: '1.5rem' }}>
+              <p className="text-xs-secondary mt-1-5rem">
                 💡 <strong>Tip:</strong> Comparte este enlace con el cliente. Es válido por 30 días.
               </p>
             </div>

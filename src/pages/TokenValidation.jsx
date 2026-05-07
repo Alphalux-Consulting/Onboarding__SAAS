@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { validateToken, getClientDataByToken } from '../services/tokenValidator'
 import LoadingScreen from '../components/LoadingScreen'
+import Logo from '../components/Logo'
 import './pages.css'
 
 export default function TokenValidation() {
@@ -87,22 +88,25 @@ export default function TokenValidation() {
     return (
       <div className="token-validation-container">
         <div className="token-validation-box">
+          <div className="admin-login-logo">
+            <Logo />
+          </div>
           <h1 className="token-validation-title">Acceso Denegado</h1>
 
           <p className="token-validation-message">
             {error}
           </p>
 
-          <div className="token-error" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-            <p style={{ marginBottom: '1rem' }}>
+          <div className="token-error-content">
+            <p>
               El acceso a tu onboarding es únicamente a través del link personalizado.
             </p>
-            <p style={{ fontSize: '0.9rem', color: '#d0d0d0' }}>
+            <p>
               Si no recibiste el link, por favor solicítalo a tu administrador de Alphalux.
             </p>
           </div>
 
-          <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+          <div className="token-validation-buttons">
             <button
               type="button"
               className="token-validation-button"
@@ -112,16 +116,8 @@ export default function TokenValidation() {
             </button>
             <button
               type="button"
+              className="token-validation-button-secondary"
               onClick={handleBack}
-              style={{
-                background: 'transparent',
-                border: '1px solid #d4af37',
-                padding: '0.75rem',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                color: '#d4af37',
-                fontSize: '1rem'
-              }}
             >
               ← Volver al inicio
             </button>
