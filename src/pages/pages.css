@@ -908,6 +908,7 @@
 .admin-clients-section {
   background: transparent;
   padding: 0;
+  animation: fadeIn 0.5s ease forwards;
 }
 
 .clients-header {
@@ -1239,8 +1240,14 @@
   backdrop-filter: none;
 }
 
+.analytics-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+}
+
 .analytics-header h2 {
-  margin: 0 0 2rem 0;
+  margin: 0;
   color: var(--text-primary);
   font-family: var(--font-heading);
   font-style: normal;
@@ -1253,24 +1260,36 @@
 .analytics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 3rem;
+  animation: slideInUp 0.5s ease 0.1s backwards;
 }
 
 .analytics-card {
-  background: rgba(50, 50, 50, 0.4);
-  border: 1px solid rgba(212, 175, 55, 0.1);
-  border-radius: 8px;
-  padding: 1.5rem;
+  background: rgba(12, 12, 12, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  padding: 1.75rem;
   text-align: center;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.analytics-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.03) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .analytics-card:hover {
-  border-color: rgba(212, 175, 55, 0.2);
-  background: rgba(50, 50, 50, 0.6);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.35);
+  background: rgba(12, 12, 12, 0.9);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.12);
 }
 
 .analytics-card h3 {
@@ -2599,15 +2618,22 @@ select option:checked,
 
 /* Export Section */
 .admin-export-section {
-  background: #1a1a1a;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.export-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 .export-header h2 {
   margin: 0 0 0.5rem 0;
-  color: var(--primary);
+  color: var(--text-primary);
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 1.75rem;
@@ -2628,19 +2654,30 @@ select option:checked,
 }
 
 .export-card {
-  background: rgba(212, 175, 55, 0.05);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: rgba(12, 12, 12, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   text-align: center;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.export-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.02) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .export-card:hover {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.4);
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+  background: rgba(12, 12, 12, 0.8);
+  border-color: rgba(212, 175, 55, 0.45);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(212, 175, 55, 0.15);
 }
 
 .export-card h3 {
@@ -2670,11 +2707,13 @@ select option:checked,
 }
 
 .export-info-section {
-  background: rgba(212, 175, 55, 0.05);
-  border-left: 3px solid rgba(212, 175, 55, 0.3);
-  padding: 1.5rem;
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.02) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-left: 3px solid rgba(212, 175, 55, 0.4);
+  padding: 1.75rem;
   border-radius: 8px;
   margin-top: 2rem;
+  backdrop-filter: blur(10px);
 }
 
 .export-info-section h3 {
@@ -4038,7 +4077,12 @@ select option:checked,
 
 /* Filter Bar */
 .filter-section {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: rgba(12, 12, 12, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.08);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
 }
 
 .filter-bar {
@@ -4046,6 +4090,7 @@ select option:checked,
   gap: 1rem;
   flex-wrap: wrap;
   animation: slideInDown 0.5s ease 0.1s backwards;
+  align-items: center;
 }
 
 .filter-button {
