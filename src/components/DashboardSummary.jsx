@@ -1,9 +1,16 @@
 export default function DashboardSummary({ clients = [] }) {
+  const clientNeedsHelp = (c) =>
+    c.google?.entorno_google_help === true ||
+    c.slack?.slack_needs_help === true ||
+    c.slack?.slack_status === 'necesita_ayuda'
+
   const metrics = {
     total: clients.length,
-    active: clients.filter(c => c.estado_cliente !== 'no_iniciado').length,
-    completed: clients.filter(c => c.estado_cliente === 'completado').length,
-    needsHelp: clients.filter(c => c.google?.entorno_google_help === true).length,
+    // Active = has started (progress > 0) but not yet 100%
+    active: clients.filter(c => { const p = c.progreso || 0; return p > 0 && p < 100 }).length,
+    // Completed = reached 100% progress
+    completed: clients.filter(c => (c.progreso || 0) === 100).length,
+    needsHelp: clients.filter(clientNeedsHelp).length,
     avgProgress:
       clients.length > 0
         ? Math.round(

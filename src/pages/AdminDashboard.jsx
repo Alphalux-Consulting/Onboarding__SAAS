@@ -51,15 +51,17 @@ export default function AdminDashboard() {
     initializeDashboard()
   }, [])
 
-  // Auto-update client status based on progress
+  // Auto-sync client status from progress — always truth-driven
   useEffect(() => {
     clients.forEach(client => {
-      // Update to "en_proceso" when progress > 0 and currently "no_iniciado"
-      if (client.progreso > 0 && client.estado_cliente === 'no_iniciado') {
+      const p = client.progreso || 0
+      const current = client.estado_cliente
+
+      if (p === 0 && current !== 'no_iniciado') {
+        handleUpdateClientStatus(client.id, 'no_iniciado')
+      } else if (p > 0 && p < 100 && current !== 'en_proceso') {
         handleUpdateClientStatus(client.id, 'en_proceso')
-      }
-      // Update to "completado" when progress reaches 100% and status is "en_proceso"
-      else if (client.progreso === 100 && client.estado_cliente === 'en_proceso') {
+      } else if (p === 100 && current !== 'completado') {
         handleUpdateClientStatus(client.id, 'completado')
       }
     })
@@ -432,10 +434,14 @@ export default function AdminDashboard() {
                 onFilterChange={setStatusFilter}
                 statusCounts={{
                   total: clients.length,
-                  no_iniciado: clients.filter(c => c.estado_cliente === 'no_iniciado').length,
-                  en_proceso: clients.filter(c => c.estado_cliente === 'en_proceso').length,
-                  completado: clients.filter(c => c.estado_cliente === 'completado').length,
-                  necesita_ayuda: clients.filter(c => c.google?.entorno_google_help === true).length
+                  no_iniciado: clients.filter(c => (c.progreso || 0) === 0).length,
+                  en_proceso: clients.filter(c => { const p = c.progreso || 0; return p > 0 && p < 100 }).length,
+                  completado: clients.filter(c => (c.progreso || 0) === 100).length,
+                  necesita_ayuda: clients.filter(c =>
+                    c.google?.entorno_google_help === true ||
+                    c.slack?.slack_needs_help === true ||
+                    c.slack?.slack_status === 'necesita_ayuda'
+                  ).length
                 }}
               />
             </div>
@@ -444,8 +450,15 @@ export default function AdminDashboard() {
               {clients
                 .filter(client => {
                   if (statusFilter === 'all') return true
-                  if (statusFilter === 'necesita_ayuda') return client.google?.entorno_google_help === true
-                  return client.estado_cliente === statusFilter
+                  if (statusFilter === 'no_iniciado') return (client.progreso || 0) === 0
+                  if (statusFilter === 'en_proceso') { const p = client.progreso || 0; return p > 0 && p < 100 }
+                  if (statusFilter === 'completado') return (client.progreso || 0) === 100
+                  if (statusFilter === 'necesita_ayuda') return (
+                    client.google?.entorno_google_help === true ||
+                    client.slack?.slack_needs_help === true ||
+                    client.slack?.slack_status === 'necesita_ayuda'
+                  )
+                  return true
                 })
                 .map(client => (
                   <ClientCard
@@ -477,27 +490,31 @@ export default function AdminDashboard() {
               <div className="analytics-card analytics-card--completed">
                 <h3>Completados</h3>
                 <p className="analytics-number">
-                  {clients.filter(c => c.estado_cliente === 'completado').length}
+                  {clients.filter(c => (c.progreso || 0) === 100).length}
                 </p>
                 <p className="analytics-subtitle">
-                  {clients.length > 0 ? (((clients.filter(c => c.estado_cliente === 'completado').length / clients.length) * 100).toFixed(1)) : 0}% del total
+                  {clients.length > 0 ? (((clients.filter(c => (c.progreso || 0) === 100).length / clients.length) * 100).toFixed(1)) : 0}% del total
                 </p>
               </div>
 
               <div className="analytics-card analytics-card--progress">
                 <h3>En Proceso</h3>
                 <p className="analytics-number">
-                  {clients.filter(c => c.estado_cliente === 'en_proceso').length}
+                  {clients.filter(c => { const p = c.progreso || 0; return p > 0 && p < 100 }).length}
                 </p>
                 <p className="analytics-subtitle">
-                  {clients.length > 0 ? (((clients.filter(c => c.estado_cliente === 'en_proceso').length / clients.length) * 100).toFixed(1)) : 0}% del total
+                  {clients.length > 0 ? (((clients.filter(c => { const p = c.progreso || 0; return p > 0 && p < 100 }).length / clients.length) * 100).toFixed(1)) : 0}% del total
                 </p>
               </div>
 
               <div className="analytics-card analytics-card--help">
                 <h3>Necesita Ayuda</h3>
                 <p className="analytics-number">
-                  {clients.filter(c => c.google?.entorno_google_help === true).length}
+                  {clients.filter(c =>
+                    c.google?.entorno_google_help === true ||
+                    c.slack?.slack_needs_help === true ||
+                    c.slack?.slack_status === 'necesita_ayuda'
+                  ).length}
                 </p>
                 <p className="analytics-subtitle">Requieren soporte setup</p>
               </div>
@@ -638,462 +655,815 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Modal de Detalles del Cliente */}
+      {/* ──────────────────────────────────────────────────────────
+           Modal de Detalles del Cliente — REDESIGNED
+           Wide layout · circular progress · 2-3 col grid · export
+           ────────────────────────────────────────────────────────── */}
       {selectedClient && (
         <div className="modal-overlay" onClick={() => setSelectedClient(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Detalles del Cliente</h2>
-              <button className="modal-close" onClick={() => setSelectedClient(null)}>×</button>
+          <div className="client-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* ── TOP BAR ─────────────────────────────────────────── */}
+            <div className="client-modal-topbar">
+              <span className="client-modal-topbar-title">Perfil del Cliente</span>
+              <div className="client-modal-topbar-actions">
+                <button className="cmt-export-btn" onClick={handleExportCSV} disabled={exporting} title="Exportar CSV">
+                  📊 {exporting ? '...' : 'CSV'}
+                </button>
+                <button className="cmt-export-btn" onClick={handleExportJSON} disabled={exporting} title="Exportar JSON">
+                  📄 JSON
+                </button>
+                <button className="client-modal-close" onClick={() => setSelectedClient(null)}>×</button>
+              </div>
             </div>
 
-            <div className="modal-body modal-body-scrollable">
-              {/* Estado del Onboarding */}
-              <div className="client-detail-section">
-                <h3>📊 Estado del Onboarding</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Progreso Total</label>
-                    <div className="mt-0-5rem">
-                      <div className="progress-bar-container">
-                        <div className="progress-bar-fill-admin" style={{ width: `${selectedClient.progreso || 0}%` }}>
-                          {(selectedClient.progreso || 0) > 5 && `${selectedClient.progreso || 0}%`}
-                        </div>
-                      </div>
+            {/* ── HERO CARD ───────────────────────────────────────── */}
+            <div className="client-modal-hero">
+
+              {/* Row 1: avatar + identity info | circular progress */}
+              <div className="client-modal-hero-top">
+                <div className="client-modal-identity">
+                  <div className="client-modal-avatar">
+                    {(selectedClient.nombre_empresa || selectedClient.nombre_comercial || '?')[0].toUpperCase()}
+                  </div>
+                  <div className="client-modal-names">
+                    <h2 className="cmi-company">
+                      {selectedClient.nombre_empresa || selectedClient.nombre_comercial || 'Sin nombre'}
+                    </h2>
+                    {selectedClient.info_basica?.nombre_comercial && selectedClient.info_basica.nombre_comercial !== selectedClient.nombre_empresa && (
+                      <p className="cmi-sub">{selectedClient.info_basica.nombre_comercial}</p>
+                    )}
+                    <div className="cmi-chips">
+                      {selectedClient.info_basica?.sector && (
+                        <span className="cmi-chip">{selectedClient.info_basica.sector}</span>
+                      )}
+                      {(selectedClient.info_basica?.ciudad || selectedClient.info_basica?.pais) && (
+                        <span className="cmi-chip">
+                          📍 {[selectedClient.info_basica?.ciudad, selectedClient.info_basica?.pais].filter(Boolean).join(', ')}
+                        </span>
+                      )}
+                      {(selectedClient.info_basica?.email || selectedClient.email) && (
+                        <span className="cmi-chip">✉️ {selectedClient.info_basica?.email || selectedClient.email}</span>
+                      )}
+                      {selectedClient.info_basica?.telefono && (
+                        <span className="cmi-chip">📞 {selectedClient.info_basica.telefono}</span>
+                      )}
+                    </div>
+                    <div className="cmi-status-row">
+                      <span className={`cmi-status-badge cmi-status-badge--${selectedClient.estado_cliente || 'no_iniciado'}`}>
+                        {selectedClient.estado_cliente === 'completado' ? '✓ Completado'
+                          : selectedClient.estado_cliente === 'en_proceso' ? '⟳ En Proceso'
+                          : '○ No Iniciado'}
+                      </span>
+                      <span className={`cmi-status-badge cmi-status-badge--admin-${selectedClient.estado_admin || 'pendiente'}`}>
+                        {selectedClient.estado_admin === 'finalizado' ? '✓ Finalizado'
+                          : selectedClient.estado_admin === 'en_revision' ? '👁 En Revisión'
+                          : '◷ Pendiente'}
+                      </span>
+                      {selectedClient.updatedAt && (
+                        <span className="cmi-chip" style={{ fontSize: '0.6rem' }}>
+                          🕐 {new Date(selectedClient.updatedAt.toDate?.() || selectedClient.updatedAt).toLocaleDateString('es-ES')}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="detail-item">
+                </div>
+
+                {/* Circular progress — right side of row 1 */}
+                <div className="cmp-circle">
+                  <svg viewBox="0 0 120 120" className="cmp-svg">
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+                    <circle
+                      cx="60" cy="60" r="50" fill="none"
+                      stroke={selectedClient.progreso >= 100 ? '#22c55e' : '#d4af37'}
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 50}`}
+                      strokeDashoffset={`${2 * Math.PI * 50 * (1 - (selectedClient.progreso || 0) / 100)}`}
+                      transform="rotate(-90 60 60)"
+                      style={{ transition: 'stroke-dashoffset 0.6s cubic-bezier(0.34,1.56,0.64,1)' }}
+                    />
+                    <text x="60" y="57" textAnchor="middle" fill="#f5f5f5" fontSize="22" fontWeight="700" fontFamily="Inter,sans-serif">
+                      {selectedClient.progreso || 0}%
+                    </text>
+                    <text x="60" y="73" textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize="9" fontFamily="Inter,sans-serif" letterSpacing="1">
+                      PROGRESO
+                    </text>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Row 2: module pills — horizontal strip */}
+              <div className="cmp-modules">
+                {[
+                  { key: 'info_basica',        icon: '🏢', label: 'Empresa' },
+                  { key: 'servicio_principal', icon: '⭐', label: 'Servicio' },
+                  { key: 'cliente_ideal',      icon: '🎯', label: 'Cliente' },
+                  { key: 'marca',              icon: '🎨', label: 'Marca' },
+                  { key: 'meta',               icon: '📘', label: 'Meta' },
+                  { key: 'google',             icon: '🔍', label: 'Google' },
+                  { key: 'slack',              icon: '💬', label: 'Slack' },
+                  { key: 'ia',                 icon: '🤖', label: 'IA' },
+                  { key: 'inspiracion',        icon: '✨', label: 'Inspira.' },
+                  { key: 'agendamiento',       icon: '📅', label: 'Meeting' },
+                ].map(mod => {
+                  const done = selectedClient[mod.key] && Object.keys(selectedClient[mod.key]).length > 0
+                  return (
+                    <div key={mod.key} className={`cmp-pill${done ? ' cmp-pill--done' : ''}`}>
+                      <span className="cmp-pill-icon">{mod.icon}</span>
+                      <span className="cmp-pill-label">{mod.label}</span>
+                      {done && <span className="cmp-pill-check">✓</span>}
+                    </div>
+                  )
+                })}
+              </div>
+
+            </div>
+
+            {/* ── SCROLLABLE BODY ─────────────────────────────────── */}
+            <div className="client-modal-body">
+
+              {/* ── Gestión de Estado ────────────────────────────── */}
+              <div className="cds">
+                <div className="cds-head">
+                  <span className="cds-head-icon">⚙️</span>
+                  <h3>Gestión de Estado</h3>
+                </div>
+                <div className="cds-grid cds-grid--3">
+                  <div className="cds-field">
                     <label>Estado Cliente</label>
-                    <p className="font-bold" style={{ fontSize: '1rem', color: selectedClient.estado_cliente === 'completado' ? '#d4af37' : '#f5f5f5' }}>
-                      {selectedClient.estado_cliente || 'No iniciado'}
-                    </p>
+                    <select
+                      className="cds-select"
+                      value={selectedClient.estado_cliente || 'no_iniciado'}
+                      onChange={(e) => handleStatusChange(selectedClient.id, 'estado_cliente', e.target.value)}
+                    >
+                      <option value="no_iniciado">No Iniciado</option>
+                      <option value="en_proceso">En Proceso</option>
+                      <option value="completado">Completado</option>
+                    </select>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Estado Admin</label>
-                    <p>{selectedClient.estado_admin || 'Pendiente'}</p>
+                    <select
+                      className="cds-select"
+                      value={selectedClient.estado_admin || 'pendiente'}
+                      onChange={(e) => handleStatusChange(selectedClient.id, 'estado_admin', e.target.value)}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="en_revision">En Revisión</option>
+                      <option value="finalizado">Finalizado</option>
+                    </select>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Última Actualización</label>
-                    <p className="text-sm">
-                      {selectedClient.updatedAt
-                        ? new Date(selectedClient.updatedAt.toDate?.() || selectedClient.updatedAt).toLocaleString()
-                        : '-'}
-                    </p>
+                    <p>{selectedClient.updatedAt
+                      ? new Date(selectedClient.updatedAt.toDate?.() || selectedClient.updatedAt).toLocaleString('es-ES')
+                      : '-'}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Información Básica */}
-              <div className="client-detail-section">
-                <h3>🏢 Información Básica</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>Empresa / Razón Social</label>
-                    <p>{selectedClient.nombre_empresa || selectedClient.nombre_comercial || '-'}</p>
+              {/* ── Información Básica ───────────────────────────── */}
+              <div className="cds">
+                <div className="cds-head">
+                  <span className="cds-head-icon">🏢</span>
+                  <h3>Información Básica</h3>
+                  {selectedClient.info_basica && Object.keys(selectedClient.info_basica).length > 0
+                    ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                    : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                </div>
+                <div className="cds-grid cds-grid--2">
+                  <div className="cds-field">
+                    <label>Razón Social</label>
+                    <p>{selectedClient.info_basica?.razon_social || selectedClient.nombre_empresa || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Nombre Comercial</label>
-                    <p>{selectedClient.nombre_comercial || '-'}</p>
+                    <p>{selectedClient.info_basica?.nombre_comercial || selectedClient.nombre_comercial || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Sector</label>
-                    <p>{selectedClient.sector || '-'}</p>
+                    <p>{selectedClient.info_basica?.sector || '-'}</p>
                   </div>
-                  <div className="detail-item">
-                    <label>Email Contacto</label>
-                    <p>{selectedClient.email || '-'}</p>
+                  <div className="cds-field">
+                    <label>Email</label>
+                    <p>{selectedClient.info_basica?.email || selectedClient.email || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Teléfono</label>
-                    <p>{selectedClient.telefono || '-'}</p>
+                    <p>{selectedClient.info_basica?.telefono || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>WhatsApp</label>
-                    <p>{selectedClient.whatsapp || '-'}</p>
+                    <p>{selectedClient.info_basica?.whatsapp || '-'}</p>
                   </div>
-                  <div className="detail-item">
-                    <label>Dirección</label>
-                    <p>{selectedClient.direccion || '-'}</p>
-                  </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Ciudad</label>
-                    <p>{selectedClient.ciudad || '-'}</p>
+                    <p>{selectedClient.info_basica?.ciudad || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>País</label>
-                    <p>{selectedClient.pais || '-'}</p>
+                    <p>{selectedClient.info_basica?.pais || '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
+                    <label>Dirección</label>
+                    <p>{selectedClient.info_basica?.direccion || '-'}</p>
+                  </div>
+                  <div className="cds-field">
                     <label>Sitio Web</label>
-                    <p>{selectedClient.web ? <a href={selectedClient.web} target="_blank" rel="noopener noreferrer" className="link-gold">{selectedClient.web}</a> : '-'}</p>
+                    <p>{selectedClient.info_basica?.web
+                      ? <a href={selectedClient.info_basica.web} target="_blank" rel="noopener noreferrer" className="link-gold">{selectedClient.info_basica.web}</a>
+                      : '-'}</p>
                   </div>
-                </div>
-              </div>
-
-              {/* Redes Sociales */}
-              <div className="client-detail-section">
-                <h3>📱 Redes Sociales</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Instagram</label>
-                    <p>{selectedClient.instagram ? <a href={`https://instagram.com/${selectedClient.instagram}`} target="_blank" rel="noopener noreferrer" className="link-gold">@{selectedClient.instagram}</a> : '-'}</p>
+                    <p>{selectedClient.info_basica?.instagram
+                      ? <a href={`https://instagram.com/${selectedClient.info_basica.instagram}`} target="_blank" rel="noopener noreferrer" className="link-gold">@{selectedClient.info_basica.instagram}</a>
+                      : '-'}</p>
                   </div>
-                  <div className="detail-item">
+                  <div className="cds-field">
                     <label>Facebook</label>
-                    <p>{selectedClient.facebook ? <a href={selectedClient.facebook} target="_blank" rel="noopener noreferrer" className="link-gold">Ver Página</a> : '-'}</p>
+                    <p>{selectedClient.info_basica?.facebook
+                      ? <a href={selectedClient.info_basica.facebook} target="_blank" rel="noopener noreferrer" className="link-gold">Ver Página</a>
+                      : '-'}</p>
                   </div>
-                  <div className="detail-item">
-                    <label>Otros Enlaces</label>
-                    <p>{selectedClient.otros_links || '-'}</p>
-                  </div>
-                  <div className="detail-item">
+                  <div className="cds-field cds-field--full">
                     <label>Horarios de Atención</label>
-                    <p>{selectedClient.horarios || '-'}</p>
+                    <p>{selectedClient.info_basica?.horarios || '-'}</p>
+                  </div>
+                  <div className="cds-field cds-field--full">
+                    <label>Otros Links</label>
+                    <p>{selectedClient.info_basica?.otros_links || '-'}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Servicio Principal */}
+              {/* ── Servicio Principal ───────────────────────────── */}
               {selectedClient.servicio_principal && (
-                <div className="client-detail-section">
-                  <h3>⭐ Servicio Principal</h3>
-                  <div className="flex-column-gap">
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">⭐</span>
+                    <h3>Servicio Principal</h3>
+                    {Object.keys(selectedClient.servicio_principal).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
                     {selectedClient.servicio_principal.nombre_servicio && (
-                      <div><label>Nombre del Servicio:</label><p>{selectedClient.servicio_principal.nombre_servicio}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.por_que_prioritario && (
-                      <div><label>Por qué es prioritario:</label><p>{selectedClient.servicio_principal.por_que_prioritario}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.descripcion_detallada && (
-                      <div><label>Descripción Detallada:</label><p>{selectedClient.servicio_principal.descripcion_detallada}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.que_incluye && (
-                      <div><label>Qué Incluye:</label><p>{selectedClient.servicio_principal.que_incluye}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.que_no_incluye && (
-                      <div><label>Qué NO Incluye:</label><p>{selectedClient.servicio_principal.que_no_incluye}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.para_quien && (
-                      <div><label>Para Quién:</label><p>{selectedClient.servicio_principal.para_quien}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.para_quien_no && (
-                      <div><label>Para Quién NO:</label><p>{selectedClient.servicio_principal.para_quien_no}</p></div>
+                      <div className="cds-field">
+                        <label>Nombre del Servicio</label>
+                        <p>{selectedClient.servicio_principal.nombre_servicio}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.precio_rango && (
-                      <div><label>Rango de Precio:</label><p>{selectedClient.servicio_principal.precio_rango}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.paquetes && (
-                      <div><label>Paquetes/Modalidades:</label><p>{selectedClient.servicio_principal.paquetes}</p></div>
-                    )}
-                    {selectedClient.servicio_principal.financiacion && (
-                      <div><label>Financiación:</label><p>{selectedClient.servicio_principal.financiacion}</p></div>
+                      <div className="cds-field">
+                        <label>Rango de Precio</label>
+                        <p>{selectedClient.servicio_principal.precio_rango}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.duracion && (
-                      <div><label>Duración:</label><p>{selectedClient.servicio_principal.duracion}</p></div>
+                      <div className="cds-field">
+                        <label>Duración</label>
+                        <p>{selectedClient.servicio_principal.duracion}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.para_quien && (
+                      <div className="cds-field">
+                        <label>Para Quién</label>
+                        <p>{selectedClient.servicio_principal.para_quien}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.para_quien_no && (
+                      <div className="cds-field">
+                        <label>Para Quién NO</label>
+                        <p>{selectedClient.servicio_principal.para_quien_no}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.paquetes && (
+                      <div className="cds-field">
+                        <label>Paquetes / Modalidades</label>
+                        <p>{selectedClient.servicio_principal.paquetes}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.financiacion && (
+                      <div className="cds-field">
+                        <label>Financiación</label>
+                        <p>{selectedClient.servicio_principal.financiacion}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.por_que_prioritario && (
+                      <div className="cds-field cds-field--full">
+                        <label>Por Qué Es Prioritario</label>
+                        <p>{selectedClient.servicio_principal.por_que_prioritario}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.descripcion_detallada && (
+                      <div className="cds-field cds-field--full">
+                        <label>Descripción Detallada</label>
+                        <p>{selectedClient.servicio_principal.descripcion_detallada}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.que_incluye && (
+                      <div className="cds-field cds-field--full">
+                        <label>Qué Incluye</label>
+                        <p>{selectedClient.servicio_principal.que_incluye}</p>
+                      </div>
+                    )}
+                    {selectedClient.servicio_principal.que_no_incluye && (
+                      <div className="cds-field cds-field--full">
+                        <label>Qué NO Incluye</label>
+                        <p>{selectedClient.servicio_principal.que_no_incluye}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.diferenciales && (
-                      <div><label>Diferenciales:</label><p>{selectedClient.servicio_principal.diferenciales}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Diferenciales Clave</label>
+                        <p>{selectedClient.servicio_principal.diferenciales}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.objeciones_frecuentes && (
-                      <div><label>Objeciones Frecuentes:</label><p>{selectedClient.servicio_principal.objeciones_frecuentes}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Objeciones Frecuentes</label>
+                        <p>{selectedClient.servicio_principal.objeciones_frecuentes}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.casos_exito && (
-                      <div><label>Casos de Éxito:</label><p>{selectedClient.servicio_principal.casos_exito}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Casos de Éxito</label>
+                        <p>{selectedClient.servicio_principal.casos_exito}</p>
+                      </div>
                     )}
                     {selectedClient.servicio_principal.faqs && (
-                      <div><label>FAQs:</label><p>{selectedClient.servicio_principal.faqs}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>FAQs</label>
+                        <p>{selectedClient.servicio_principal.faqs}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Cliente Ideal */}
+              {/* ── Cliente Ideal ────────────────────────────────── */}
               {selectedClient.cliente_ideal && (
-                <div className="client-detail-section">
-                  <h3>🎯 Cliente Ideal / Avatar</h3>
-                  <div className="flex-column-gap">
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">🎯</span>
+                    <h3>Cliente Ideal / Avatar</h3>
+                    {Object.keys(selectedClient.cliente_ideal).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
                     {selectedClient.cliente_ideal.cliente_ideal && (
-                      <div><label>Cliente Ideal:</label><p>{selectedClient.cliente_ideal.cliente_ideal}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.edad && (
-                      <div><label>Edad:</label><p>{selectedClient.cliente_ideal.edad}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.genero && (
-                      <div><label>Género:</label><p>{selectedClient.cliente_ideal.genero}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.ubicacion && (
-                      <div><label>Ubicación:</label><p>{selectedClient.cliente_ideal.ubicacion}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.nivel_socioeconomico && (
-                      <div><label>Nivel Socioeconómico:</label><p>{selectedClient.cliente_ideal.nivel_socioeconomico}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.profesion && (
-                      <div><label>Profesión/Ocupación:</label><p>{selectedClient.cliente_ideal.profesion}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Descripción del Cliente Ideal</label>
+                        <p>{selectedClient.cliente_ideal.cliente_ideal}</p>
+                      </div>
                     )}
                     {selectedClient.cliente_ideal.problemas_principales && (
-                      <div><label>Problemas Principales:</label><p>{selectedClient.cliente_ideal.problemas_principales}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.dolores_emocionales && (
-                      <div><label>Dolores Emocionales:</label><p>{selectedClient.cliente_ideal.dolores_emocionales}</p></div>
-                    )}
-                    {selectedClient.cliente_ideal.miedos && (
-                      <div><label>Miedos:</label><p>{selectedClient.cliente_ideal.miedos}</p></div>
+                      <div className="cds-field">
+                        <label>Problemas Principales</label>
+                        <p>{selectedClient.cliente_ideal.problemas_principales}</p>
+                      </div>
                     )}
                     {selectedClient.cliente_ideal.deseos && (
-                      <div><label>Deseos/Aspiraciones:</label><p>{selectedClient.cliente_ideal.deseos}</p></div>
+                      <div className="cds-field">
+                        <label>Deseos / Aspiraciones</label>
+                        <p>{selectedClient.cliente_ideal.deseos}</p>
+                      </div>
                     )}
-                    {selectedClient.cliente_ideal.motivaciones && (
-                      <div><label>Motivaciones:</label><p>{selectedClient.cliente_ideal.motivaciones}</p></div>
+                    {selectedClient.cliente_ideal.barreras && (
+                      <div className="cds-field">
+                        <label>Barreras</label>
+                        <p>{selectedClient.cliente_ideal.barreras}</p>
+                      </div>
+                    )}
+                    {selectedClient.cliente_ideal.necesita_escuchar && (
+                      <div className="cds-field">
+                        <label>Necesita Escuchar</label>
+                        <p>{selectedClient.cliente_ideal.necesita_escuchar}</p>
+                      </div>
                     )}
                     {selectedClient.cliente_ideal.senales_buen_lead && (
-                      <div><label>Señales de Buen Lead:</label><p>{selectedClient.cliente_ideal.senales_buen_lead}</p></div>
+                      <div className="cds-field">
+                        <label>Señales de Buen Lead</label>
+                        <p>{selectedClient.cliente_ideal.senales_buen_lead}</p>
+                      </div>
                     )}
                     {selectedClient.cliente_ideal.senales_mal_lead && (
-                      <div><label>Señales de Mal Lead:</label><p>{selectedClient.cliente_ideal.senales_mal_lead}</p></div>
+                      <div className="cds-field">
+                        <label>Señales de Mal Lead</label>
+                        <p>{selectedClient.cliente_ideal.senales_mal_lead}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Marca e Identidad Visual */}
+              {/* ── Marca ────────────────────────────────────────── */}
               {selectedClient.marca && (
-                <div className="client-detail-section">
-                  <h3>🎨 Marca e Identidad Visual</h3>
-                  <div className="flex-column-gap">
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">🎨</span>
+                    <h3>Marca e Identidad Visual</h3>
+                    {Object.keys(selectedClient.marca).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
                     {selectedClient.marca.paleta_colores && (
-                      <div><label>Paleta de Colores:</label><p>{selectedClient.marca.paleta_colores}</p></div>
+                      <div className="cds-field">
+                        <label>Paleta de Colores</label>
+                        <p>{selectedClient.marca.paleta_colores}</p>
+                      </div>
                     )}
                     {selectedClient.marca.tipografias && (
-                      <div><label>Tipografías:</label><p>{selectedClient.marca.tipografias}</p></div>
+                      <div className="cds-field">
+                        <label>Tipografías</label>
+                        <p>{selectedClient.marca.tipografias}</p>
+                      </div>
                     )}
                     {selectedClient.marca.estilo_visual && (
-                      <div><label>Estilo Visual:</label><p>{selectedClient.marca.estilo_visual}</p></div>
+                      <div className="cds-field">
+                        <label>Estilo Visual</label>
+                        <p>{selectedClient.marca.estilo_visual}</p>
+                      </div>
                     )}
                     {selectedClient.marca.referencias && (
-                      <div><label>Referencias/Inspiración:</label><p>{selectedClient.marca.referencias}</p></div>
+                      <div className="cds-field">
+                        <label>Referencias / Inspiración</label>
+                        <p>{selectedClient.marca.referencias}</p>
+                      </div>
                     )}
                     {selectedClient.marca.preferencias_comunicacion && (
-                      <div><label>Preferencias de Comunicación:</label><p>{selectedClient.marca.preferencias_comunicacion}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Preferencias de Comunicación</label>
+                        <p>{selectedClient.marca.preferencias_comunicacion}</p>
+                      </div>
                     )}
                     {selectedClient.marca.no_hacer_con_marca && (
-                      <div><label>QUÉ NO Hacer con la Marca:</label><p>{selectedClient.marca.no_hacer_con_marca}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>QUÉ NO Hacer con la Marca</label>
+                        <p>{selectedClient.marca.no_hacer_con_marca}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Meta/Facebook */}
+              {/* ── Meta / Facebook Ads ──────────────────────────── */}
               {selectedClient.meta && (
-                <div className="client-detail-section">
-                  <h3>📘 Entorno Meta / Facebook Ads</h3>
-                  <div className="flex-column-gap">
-                    {selectedClient.meta.tiene_activos !== undefined && (
-                      <div><label>¿Tiene Activos?:</label><p>{selectedClient.meta.tiene_activos ? 'Sí' : 'No'}</p></div>
-                    )}
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">📘</span>
+                    <h3>Entorno Meta / Facebook Ads</h3>
+                    {Object.keys(selectedClient.meta).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
+                    <div className="cds-field">
+                      <label>¿Tiene Activos Meta?</label>
+                      <p>{selectedClient.meta.tiene_activos !== undefined
+                        ? (selectedClient.meta.tiene_activos ? '✅ Sí' : '❌ No')
+                        : '-'}</p>
+                    </div>
                     {selectedClient.meta.portfolio_id && (
-                      <div><label>Portfolio ID:</label><p>{selectedClient.meta.portfolio_id}</p></div>
+                      <div className="cds-field">
+                        <label>Portfolio ID</label>
+                        <p className="cds-mono">{selectedClient.meta.portfolio_id}</p>
+                      </div>
                     )}
                     {selectedClient.meta.instagram_username && (
-                      <div><label>Usuario Instagram:</label><p>@{selectedClient.meta.instagram_username}</p></div>
+                      <div className="cds-field">
+                        <label>Usuario Instagram</label>
+                        <p>@{selectedClient.meta.instagram_username}</p>
+                      </div>
                     )}
                     {selectedClient.meta.business_manager_id && (
-                      <div><label>Business Manager ID:</label><p>{selectedClient.meta.business_manager_id}</p></div>
+                      <div className="cds-field">
+                        <label>Business Manager ID</label>
+                        <p className="cds-mono">{selectedClient.meta.business_manager_id}</p>
+                      </div>
                     )}
                     {selectedClient.meta.cuenta_publicitaria_id && (
-                      <div><label>Cuenta Publicitaria ID:</label><p>{selectedClient.meta.cuenta_publicitaria_id}</p></div>
+                      <div className="cds-field">
+                        <label>Cuenta Publicitaria ID</label>
+                        <p className="cds-mono">{selectedClient.meta.cuenta_publicitaria_id}</p>
+                      </div>
                     )}
                     {selectedClient.meta.pixel_id && (
-                      <div><label>Pixel ID:</label><p>{selectedClient.meta.pixel_id}</p></div>
+                      <div className="cds-field">
+                        <label>Pixel ID</label>
+                        <p className="cds-mono">{selectedClient.meta.pixel_id}</p>
+                      </div>
                     )}
                     {selectedClient.meta.email_acceso && (
-                      <div><label>Email de Acceso:</label><p>{selectedClient.meta.email_acceso}</p></div>
+                      <div className="cds-field">
+                        <label>Email de Acceso</label>
+                        <p>{selectedClient.meta.email_acceso}</p>
+                      </div>
                     )}
-                    {selectedClient.meta.confirmacion_compartido !== undefined && (
-                      <div><label>Confirmación Compartido:</label><p>{selectedClient.meta.confirmacion_compartido ? '✓ Sí' : '✗ No'}</p></div>
-                    )}
+                    <div className="cds-field">
+                      <label>Acceso Compartido</label>
+                      <p>{selectedClient.meta.confirmacion_compartido !== undefined
+                        ? (selectedClient.meta.confirmacion_compartido ? '✅ Confirmado' : '⏳ Pendiente')
+                        : '-'}</p>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Google */}
+              {/* ── Google ───────────────────────────────────────── */}
               {selectedClient.google && (
-                <div className="client-detail-section">
-                  <h3>🔍 Entorno Google</h3>
-                  <div className="flex-column-gap">
-                    {selectedClient.google.entorno_google_status && (
-                      <div>
-                        <label>Situación Actual:</label>
-                        <p>
-                          {selectedClient.google.entorno_google_status === 'si' && '✅ Tiene Google configurado'}
-                          {selectedClient.google.entorno_google_status === 'no' && '❌ Necesita ayuda para configurar'}
-                          {selectedClient.google.entorno_google_status === 'no_seguro' && '❓ No está seguro'}
-                        </p>
-                      </div>
-                    )}
-                    {selectedClient.google.entorno_google_help !== undefined && (
-                      <div>
-                        <label>Estado de Soporte:</label>
-                        <p>
-                          {selectedClient.google.entorno_google_help === true && '⚠️ Cliente necesita asistencia de setup'}
-                          {selectedClient.google.entorno_google_help === false && '✓ Cliente tiene todo configurado'}
-                          {selectedClient.google.entorno_google_help === null && '❓ Cliente aún indeciso'}
-                        </p>
-                      </div>
-                    )}
-                    {selectedClient.google.google_maps_link && (
-                      <div>
-                        <label>Google Business Profile:</label>
-                        <p>
-                          <a href={selectedClient.google.google_maps_link} target="_blank" rel="noopener noreferrer" className="link-gold">
-                            📍 Ver en Google Maps
-                          </a>
-                        </p>
-                      </div>
-                    )}
-                    {selectedClient.google.entorno_google_confirmation && (
-                      <div><label>Confirmación:</label><p>✓ Confirmado</p></div>
-                    )}
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">🔍</span>
+                    <h3>Entorno Google</h3>
+                    {Object.keys(selectedClient.google).length === 0
+                      ? <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>
+                      : selectedClient.google.entorno_google_help === true
+                        ? <span className="cds-badge cds-badge--warn">⚠️ Necesita ayuda</span>
+                        : <span className="cds-badge cds-badge--done">✓ Completado</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
+                    <div className="cds-field">
+                      <label>Situación Actual</label>
+                      <p>
+                        {selectedClient.google.entorno_google_status === 'si' && '✅ Tiene Google configurado'}
+                        {selectedClient.google.entorno_google_status === 'no' && '❌ Necesita configuración'}
+                        {selectedClient.google.entorno_google_status === 'no_seguro' && '❓ No está seguro'}
+                        {!selectedClient.google.entorno_google_status && '-'}
+                      </p>
+                    </div>
+                    <div className="cds-field">
+                      <label>Estado de Soporte</label>
+                      <p>
+                        {selectedClient.google.entorno_google_help === true && <span style={{color:'#ff9800',fontWeight:600}}>⚠️ Necesita asistencia</span>}
+                        {selectedClient.google.entorno_google_help === false && '✓ Todo configurado'}
+                        {selectedClient.google.entorno_google_help === null && '❓ Por decidir'}
+                        {selectedClient.google.entorno_google_help === undefined && '-'}
+                      </p>
+                    </div>
+                    <div className="cds-field">
+                      <label>Google Business Profile</label>
+                      <p>{selectedClient.google.google_maps_link
+                        ? <a href={selectedClient.google.google_maps_link} target="_blank" rel="noopener noreferrer" className="link-gold">📍 Ver en Maps</a>
+                        : '-'}</p>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Slack */}
+              {/* ── Slack ────────────────────────────────────────── */}
               {selectedClient.slack && (
-                <div className="client-detail-section">
-                  <h3>💬 Slack / Comunicación Operativa</h3>
-                  <div className="flex-column-gap">
-                    {selectedClient.slack.tutorial_visto && (
-                      <div><label>Tutorial Visto:</label><p>{selectedClient.slack.tutorial_visto ? '✓ Sí' : '✗ No'}</p></div>
-                    )}
-                    {selectedClient.slack.email_principal_empresa && (
-                      <div><label>Email Principal Empresa:</label><p>{selectedClient.slack.email_principal_empresa}</p></div>
-                    )}
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">💬</span>
+                    <h3>Slack / Comunicación</h3>
+                    {Object.keys(selectedClient.slack).length === 0
+                      ? <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>
+                      : selectedClient.slack.slack_needs_help
+                        ? <span className="cds-badge cds-badge--warn">⚠️ Necesita ayuda</span>
+                        : <span className="cds-badge cds-badge--done">✓ Completado</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
+                    <div className="cds-field">
+                      <label>Tutorial Visto</label>
+                      <p>{selectedClient.slack.tutorial_visto ? '✅ Sí' : '❌ No'}</p>
+                    </div>
+                    <div className="cds-field">
+                      <label>Estado Slack</label>
+                      <p>{selectedClient.slack.slack_status === 'completado'
+                        ? '✅ Completado'
+                        : selectedClient.slack.slack_status === 'necesita_ayuda'
+                          ? <span style={{color:'#ff9800',fontWeight:600}}>⚠️ Necesita ayuda</span>
+                          : (selectedClient.slack.slack_status || '-')}</p>
+                    </div>
+                    <div className="cds-field">
+                      <label>Email Principal Empresa</label>
+                      <p>{selectedClient.slack.email_principal_empresa || '-'}</p>
+                    </div>
                     {selectedClient.slack.emails_equipo && (
-                      <div><label>Emails del Equipo:</label><p>{selectedClient.slack.emails_equipo.split('\n').join(', ')}</p></div>
-                    )}
-                    {selectedClient.slack.slack_status && (
-                      <div><label>Estado Slack:</label><p>{selectedClient.slack.slack_status === 'completado' ? '✓ Completado' : '🆘 Necesita Ayuda'}</p></div>
-                    )}
-                    {selectedClient.slack.slack_needs_help && (
-                      <div><label>Requiere Asistencia:</label><p style={{color: '#ff9800', fontWeight: 'bold'}}>⚠️ Sí, cliente necesita ayuda</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Emails del Equipo</label>
+                        <p>{selectedClient.slack.emails_equipo}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* IA / WhatsApp Bot */}
+              {/* ── IA / Asistente ───────────────────────────────── */}
               {selectedClient.ia && (
-                <div className="client-detail-section">
-                  <h3>🤖 IA / Asistente Virtual</h3>
-                  <div className="flex-column-gap">
-                    {selectedClient.ia.implementar_ia !== undefined && (
-                      <div><label>¿Implementar IA?:</label><p>{selectedClient.ia.implementar_ia ? '✓ Sí' : '✗ No'}</p></div>
-                    )}
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">🤖</span>
+                    <h3>IA / Asistente Virtual</h3>
+                    {Object.keys(selectedClient.ia).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
+                    <div className="cds-field">
+                      <label>¿Implementar IA?</label>
+                      <p>{selectedClient.ia.implementar_ia !== undefined
+                        ? (selectedClient.ia.implementar_ia ? '✅ Sí' : '❌ No')
+                        : '-'}</p>
+                    </div>
                     {selectedClient.ia.nombre_asistente && (
-                      <div><label>Nombre del Asistente:</label><p>{selectedClient.ia.nombre_asistente}</p></div>
-                    )}
-                    {selectedClient.ia.objetivo_principal && (
-                      <div><label>Objetivo Principal:</label><p>{selectedClient.ia.objetivo_principal}</p></div>
+                      <div className="cds-field">
+                        <label>Nombre del Asistente</label>
+                        <p>{selectedClient.ia.nombre_asistente}</p>
+                      </div>
                     )}
                     {selectedClient.ia.tono && (
-                      <div><label>Tono de Comunicación:</label><p>{selectedClient.ia.tono}</p></div>
+                      <div className="cds-field">
+                        <label>Tono de Comunicación</label>
+                        <p>{selectedClient.ia.tono}</p>
+                      </div>
+                    )}
+                    {selectedClient.ia.objetivo_principal && (
+                      <div className="cds-field cds-field--full">
+                        <label>Objetivo Principal</label>
+                        <p>{selectedClient.ia.objetivo_principal}</p>
+                      </div>
                     )}
                     {selectedClient.ia.que_responder && (
-                      <div><label>Qué Debe Responder:</label><p>{selectedClient.ia.que_responder}</p></div>
+                      <div className="cds-field">
+                        <label>Qué Debe Responder</label>
+                        <p>{selectedClient.ia.que_responder}</p>
+                      </div>
                     )}
                     {selectedClient.ia.que_no_responder && (
-                      <div><label>Qué NO Debe Responder:</label><p>{selectedClient.ia.que_no_responder}</p></div>
+                      <div className="cds-field">
+                        <label>Qué NO Debe Responder</label>
+                        <p>{selectedClient.ia.que_no_responder}</p>
+                      </div>
                     )}
                     {selectedClient.ia.cuando_derivar && (
-                      <div><label>Cuándo Derivar a Humano:</label><p>{selectedClient.ia.cuando_derivar}</p></div>
+                      <div className="cds-field">
+                        <label>Cuándo Derivar a Humano</label>
+                        <p>{selectedClient.ia.cuando_derivar}</p>
+                      </div>
                     )}
                     {selectedClient.ia.datos_recoger && (
-                      <div><label>Datos a Recopilar:</label><p>{selectedClient.ia.datos_recoger}</p></div>
+                      <div className="cds-field">
+                        <label>Datos a Recopilar</label>
+                        <p>{selectedClient.ia.datos_recoger}</p>
+                      </div>
                     )}
                     {selectedClient.ia.base_conocimiento && (
-                      <div><label>Tipo de Base de Conocimiento:</label><p>{selectedClient.ia.base_conocimiento === 'texto' ? '📝 Texto Directo' : selectedClient.ia.base_conocimiento === 'prompt' ? '🤖 Prompt ChatGPT' : '📁 Archivo Cargado'}</p></div>
+                      <div className="cds-field">
+                        <label>Tipo de Base de Conocimiento</label>
+                        <p>{selectedClient.ia.base_conocimiento === 'texto' ? '📝 Texto Directo'
+                          : selectedClient.ia.base_conocimiento === 'prompt' ? '🤖 Prompt ChatGPT'
+                          : '📁 Archivo Cargado'}</p>
+                      </div>
                     )}
                     {selectedClient.ia.base_conocimiento_texto && (
-                      <div><label>Contenido (Opción A - Texto):</label><p>{selectedClient.ia.base_conocimiento_texto}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Contenido de Base de Conocimiento</label>
+                        <p className="cds-text-block">{selectedClient.ia.base_conocimiento_texto}</p>
+                      </div>
                     )}
                     {selectedClient.ia.base_conocimiento_archivo_nombre && (
-                      <div><label>Archivo Cargado (Opción C):</label><p>📎 {selectedClient.ia.base_conocimiento_archivo_nombre}</p></div>
+                      <div className="cds-field">
+                        <label>Archivo Cargado</label>
+                        <p>📎 {selectedClient.ia.base_conocimiento_archivo_nombre}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Inspiración */}
+              {/* ── Inspiración ──────────────────────────────────── */}
               {selectedClient.inspiracion && (
-                <div className="client-detail-section">
-                  <h3>✨ Inspiración y Referencias</h3>
-                  <div className="flex-column-gap">
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">✨</span>
+                    <h3>Inspiración y Referencias</h3>
+                    {Object.keys(selectedClient.inspiracion).length > 0
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
                     {selectedClient.inspiracion.webs_referencia && (
-                      <div><label>Webs de Referencia:</label><p>{selectedClient.inspiracion.webs_referencia}</p></div>
-                    )}
-                    {selectedClient.inspiracion.anuncios_gustan && (
-                      <div><label>Anuncios que te Gustan:</label><p>{selectedClient.inspiracion.anuncios_gustan}</p></div>
-                    )}
-                    {selectedClient.inspiracion.competidores && (
-                      <div><label>Competidores a Analizar:</label><p>{selectedClient.inspiracion.competidores}</p></div>
+                      <div className="cds-field">
+                        <label>Webs de Referencia</label>
+                        <p>{selectedClient.inspiracion.webs_referencia}</p>
+                      </div>
                     )}
                     {selectedClient.inspiracion.marcas_gustan && (
-                      <div><label>Marcas que te Gustan:</label><p>{selectedClient.inspiracion.marcas_gustan}</p></div>
+                      <div className="cds-field">
+                        <label>Marcas que Gustan</label>
+                        <p>{selectedClient.inspiracion.marcas_gustan}</p>
+                      </div>
                     )}
                     {selectedClient.inspiracion.marcas_no_parecer && (
-                      <div><label>Marcas QUÉ NO Parecer:</label><p>{selectedClient.inspiracion.marcas_no_parecer}</p></div>
+                      <div className="cds-field">
+                        <label>Marcas QUÉ NO Parecer</label>
+                        <p>{selectedClient.inspiracion.marcas_no_parecer}</p>
+                      </div>
                     )}
-                    {selectedClient.inspiracion.tono_ejemplos && (
-                      <div><label>Tono/Ejemplos:</label><p>{selectedClient.inspiracion.tono_ejemplos}</p></div>
+                    {selectedClient.inspiracion.anuncios_gustan && (
+                      <div className="cds-field">
+                        <label>Anuncios que Gustan</label>
+                        <p>{selectedClient.inspiracion.anuncios_gustan}</p>
+                      </div>
+                    )}
+                    {(selectedClient.inspiracion.competencia_analizar || selectedClient.inspiracion.competidores) && (
+                      <div className="cds-field">
+                        <label>Competidores a Analizar</label>
+                        <p>{selectedClient.inspiracion.competencia_analizar || selectedClient.inspiracion.competidores}</p>
+                      </div>
+                    )}
+                    {selectedClient.inspiracion.elementos_que_gustan && (
+                      <div className="cds-field">
+                        <label>Elementos que Gustan</label>
+                        <p>{selectedClient.inspiracion.elementos_que_gustan}</p>
+                      </div>
                     )}
                     {selectedClient.inspiracion.comentarios_adicionales && (
-                      <div><label>Comentarios Adicionales:</label><p>{selectedClient.inspiracion.comentarios_adicionales}</p></div>
+                      <div className="cds-field cds-field--full">
+                        <label>Comentarios Adicionales</label>
+                        <p>{selectedClient.inspiracion.comentarios_adicionales}</p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Agendamiento */}
+              {/* ── Agendamiento ─────────────────────────────────── */}
               {selectedClient.agendamiento && (
-                <div className="client-detail-section">
-                  <h3>📅 Agendamiento de Meeting</h3>
-                  <div className="flex-column-gap">
-                    {selectedClient.agendamiento.meeting_agendado !== undefined && (
-                      <div><label>Meeting Agendado:</label><p>{selectedClient.agendamiento.meeting_agendado ? 'Sí' : 'No'}</p></div>
-                    )}
+                <div className="cds">
+                  <div className="cds-head">
+                    <span className="cds-head-icon">📅</span>
+                    <h3>Agendamiento de Meeting</h3>
+                    {selectedClient.agendamiento.meeting_agendado === true
+                      ? <span className="cds-badge cds-badge--done">✓ Completado</span>
+                      : Object.keys(selectedClient.agendamiento).length > 0
+                        ? <span className="cds-badge cds-badge--warn">⏳ En proceso</span>
+                        : <span className="cds-badge cds-badge--pending">⏳ Pendiente</span>}
+                  </div>
+                  <div className="cds-grid cds-grid--2">
+                    <div className="cds-field">
+                      <label>Meeting Agendado</label>
+                      <p>{selectedClient.agendamiento.meeting_agendado !== undefined
+                        ? (selectedClient.agendamiento.meeting_agendado ? '✅ Sí' : '⏳ Pendiente')
+                        : '-'}</p>
+                    </div>
                     {selectedClient.agendamiento.fecha_agendamiento && (
-                      <div><label>Fecha:</label><p>{new Date(selectedClient.agendamiento.fecha_agendamiento).toLocaleDateString()}</p></div>
+                      <div className="cds-field">
+                        <label>Fecha</label>
+                        <p>{new Date(selectedClient.agendamiento.fecha_agendamiento).toLocaleDateString('es-ES')}</p>
+                      </div>
                     )}
                     {selectedClient.agendamiento.hora_agendamiento && (
-                      <div><label>Hora:</label><p>{selectedClient.agendamiento.hora_agendamiento}</p></div>
+                      <div className="cds-field">
+                        <label>Hora</label>
+                        <p>{selectedClient.agendamiento.hora_agendamiento}</p>
+                      </div>
                     )}
                     {selectedClient.agendamiento.calendario_link && (
-                      <div><label>Link Calendario:</label><p><a href={selectedClient.agendamiento.calendario_link} target="_blank" rel="noopener noreferrer" className="link-gold">Agendar</a></p></div>
+                      <div className="cds-field">
+                        <label>Link Calendario</label>
+                        <p><a href={selectedClient.agendamiento.calendario_link} target="_blank" rel="noopener noreferrer" className="link-gold">📅 Agendar reunión</a></p>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Generar Link de Acceso */}
-              <div className="client-detail-section">
-                <h3>🔗 Generar Link de Acceso</h3>
-                <p className="mb-1rem text-xs-secondary">
-                  Genera un nuevo link de invitación para este cliente. El link se copiará automáticamente al portapapeles.
-                </p>
-                <button
-                  className="btn-primary w-100"
-                  onClick={() => handleGenerateToken(
-                    selectedClient.id,
-                    selectedClient.email,
-                    selectedClient.nombre_empresa
-                  )}
-                  disabled={generatingToken}
-                >
-                  {generatingToken ? '⏳ Generando...' : '🔗 Generar Nuevo Link'}
-                </button>
+              {/* ── Acciones ─────────────────────────────────────── */}
+              <div className="cds cds--actions">
+                <div className="cds-head">
+                  <span className="cds-head-icon">🔗</span>
+                  <h3>Acciones Rápidas</h3>
+                </div>
+                <div className="cds-actions-row">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleGenerateToken(
+                      selectedClient.id,
+                      selectedClient.info_basica?.email || selectedClient.email,
+                      selectedClient.nombre_empresa
+                    )}
+                    disabled={!!generatingToken}
+                  >
+                    {generatingToken ? '⏳ Generando...' : '🔗 Generar Nuevo Link'}
+                  </button>
+                  <button className="btn btn-ghost" onClick={handleExportCSV} disabled={exporting}>
+                    📊 {exporting ? 'Exportando...' : 'Exportar CSV'}
+                  </button>
+                  <button className="btn btn-ghost" onClick={handleExportJSON} disabled={exporting}>
+                    📄 Exportar JSON
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
+
+            </div>{/* end client-modal-body */}
+          </div>{/* end client-modal */}
         </div>
       )}
 

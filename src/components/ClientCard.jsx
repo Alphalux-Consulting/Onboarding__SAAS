@@ -57,15 +57,14 @@ export default function ClientCard({
   const countCompletedModules = () => {
     const modules = [
       'info_basica',
-      'redes_sociales',
       'servicio_principal',
       'cliente_ideal',
-      'marca_identidad',
-      'meta_facebook',
+      'marca',
+      'meta',
       'google',
-      'slack_comunicacion',
-      'ia_asistente',
-      'inspiracion_referencias',
+      'slack',
+      'ia',
+      'inspiracion',
       'agendamiento'
     ]
 
@@ -79,11 +78,16 @@ export default function ClientCard({
   }
 
   const completedModules = countCompletedModules()
-  const totalModules = 11
+  const totalModules = 10
 
   const companyName = client.nombre_empresa || client.nombre_comercial || 'Sin nombre'
   const progress = client.progreso || 0
-  const needsHelp = client.google?.entorno_google_help === true
+
+  // Client needs help if ANY module flagged help needed
+  const needsHelp =
+    client.google?.entorno_google_help === true ||
+    client.slack?.slack_needs_help === true ||
+    client.slack?.slack_status === 'necesita_ayuda'
 
   return (
     <div className={`client-card ${needsHelp ? 'client-card--needs-help' : ''}`}>
