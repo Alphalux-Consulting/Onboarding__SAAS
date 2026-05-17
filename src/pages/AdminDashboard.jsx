@@ -22,6 +22,7 @@ import ClientCard from '../components/ClientCard'
 import ClientCardGrid from '../components/ClientCardGrid'
 import FilterBar from '../components/FilterBar'
 import DashboardSummary from '../components/DashboardSummary'
+import UserMenu from '../components/UserMenu'
 import './pages.css'
 
 export default function AdminDashboard() {
@@ -286,16 +287,7 @@ export default function AdminDashboard() {
           <img src={logoUrl} alt="Alphalux" />
         </div>
         <div className="admin-header-right">
-          <div className="admin-header-user">
-            <span className="admin-header-user-role">Administrador</span>
-            <span className="admin-header-user-email">{user?.email}</span>
-          </div>
-          <button
-            className="btn-logout"
-            onClick={handleLogout}
-          >
-            Salir
-          </button>
+          <UserMenu user={user} onLogout={handleLogout} />
         </div>
       </div>
 
