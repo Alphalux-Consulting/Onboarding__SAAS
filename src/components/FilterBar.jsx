@@ -3,7 +3,8 @@ export default function FilterBar({ statusFilter, onFilterChange, statusCounts =
     { key: 'all', label: 'Todos', count: statusCounts.total || 0 },
     { key: 'no_iniciado', label: 'No Iniciado', count: statusCounts.no_iniciado || 0 },
     { key: 'en_proceso', label: 'En Proceso', count: statusCounts.en_proceso || 0 },
-    { key: 'completado', label: 'Completado', count: statusCounts.completado || 0 }
+    { key: 'completado', label: 'Completado', count: statusCounts.completado || 0 },
+    { key: 'necesita_ayuda', label: 'Necesita Ayuda', count: statusCounts.necesita_ayuda || 0 }
   ]
 
   return (

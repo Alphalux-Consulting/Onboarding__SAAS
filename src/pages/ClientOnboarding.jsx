@@ -18,7 +18,7 @@ import {
   BRAND_CATEGORIES
 } from '../services/googleDriveService'
 import LoadingScreen from '../components/LoadingScreen'
-import Logo from '../components/Logo'
+import CompletionCelebration from '../components/CompletionCelebration'
 import './pages.css'
 
 // 🧪 Modo de Prueba - Permite saltar módulos sin validación
@@ -45,17 +45,17 @@ function VideoSection({ videoUrl, title }) {
 }
 
 const STEP_MESSAGES = {
-  1: "Comencemos con lo esencial. Los datos de tu empresa.",
-  2: "Perfecto. Ahora define tu servicio principal con precisión.",
-  3: "Excelente. Tu cliente ideal marcará toda la estrategia.",
-  4: "Tu identidad visual. El lenguaje de tu marca.",
-  5: "Meta Ads: el motor de captación para tu negocio.",
-  6: "Google: visibilidad local y búsqueda activa.",
-  7: "Slack será nuestro espacio de operación diaria.",
-  8: "IA: automatiza y escala tu atención al cliente.",
-  9: "Inspiración y referencias para afinar la estrategia.",
-  10: "Último paso. Agendemos la reunión de inicio.",
-  11: "Onboarding completado. Listo para el lanzamiento."
+  1: "📍 UBICACIÓN — Comencemos con lo esencial. Los datos de tu empresa.",
+  2: "⭐ IDENTIDAD — Perfecto. Ahora define tu servicio principal con precisión.",
+  3: "🎯 DESTINO — Excelente. Tu cliente ideal marcará toda la estrategia.",
+  4: "🎨 EXPRESIÓN — Tu identidad visual. El lenguaje de tu marca.",
+  5: "📘 ALCANCE — Meta Ads: el motor de captación para tu negocio.",
+  6: "🔍 VISIBILIDAD — Google: visibilidad local y búsqueda activa.",
+  7: "💬 CONEXIÓN — Slack será nuestro espacio de operación diaria.",
+  8: "🤖 INTELIGENCIA — IA: automatiza y escala tu atención al cliente.",
+  9: "✨ INSPIRACIÓN — Inspiración y referencias para afinar la estrategia.",
+  10: "📅 LANZAMIENTO — Último paso. Agendemos la reunión de inicio.",
+  11: "🎉 COMPLETADO — Onboarding completado. Listo para el lanzamiento."
 }
 
 export default function ClientOnboarding() {
@@ -320,13 +320,14 @@ export default function ClientOnboarding() {
     )
   }
 
+  const logoUrl = new URL('../assets/images/logo-alphalux.png', import.meta.url).href
+
   return (
     <div className="onboarding-layout">
       {/* Sidebar */}
       <aside className="onboarding-sidebar">
         <div className="sidebar-brand">
-          <Logo variant="mark" />
-          <span className="sidebar-brand-name">Alphalux</span>
+          <img src={logoUrl} alt="Alphalux" className="sidebar-brand-logo" />
         </div>
 
         <nav className="sidebar-nav">
@@ -380,14 +381,14 @@ export default function ClientOnboarding() {
           </div>
         )}
 
-        <div className="onboarding-step-wrapper">
+        <div className={`onboarding-step-wrapper${currentStep === 0 ? ' onboarding-step-wrapper--welcome' : ''}`}>
           {error && (
             <div className="form-error" style={{ marginBottom: '1.5rem' }}>
               <span>⚠️</span> <span>{error}</span>
             </div>
           )}
 
-          {currentStep < MODULES.length - 1 && (
+          {currentStep > 0 && currentStep < MODULES.length - 1 && (
             <div className="step-header">
               <div className="step-num-badge">Paso {currentStep} / {MODULES.length - 2}</div>
               <h2 className="step-title">{currentModule.name}</h2>
@@ -406,38 +407,50 @@ export default function ClientOnboarding() {
               clientData={clientData}
               onStartOnboarding={handleStartOnboarding}
               progress={progress}
+              currentStep={currentStep}
               onBackToWelcome={() => setCurrentStep(0)}
               clientId={clientId}
             />
           </div>
 
-          <div className="step-navigation">
-            <button
-              className="btn btn-ghost"
-              onClick={handlePrevious}
-              disabled={currentStep < 1 || saving}
-            >
-              ← Anterior
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleSaveAndNext}
-              disabled={saving}
-            >
-              {saving ? 'Guardando...' : currentStep === MODULES.length - 1 ? 'Completar' : 'Siguiente →'}
-            </button>
-          </div>
+          {currentStep > 0 && (
+            <div className="step-navigation">
+              <button
+                className="btn btn-ghost"
+                onClick={handlePrevious}
+                disabled={currentStep < 1 || saving}
+              >
+                ← Anterior
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleSaveAndNext}
+                disabled={saving}
+              >
+                {saving ? 'Guardando...' : currentStep === MODULES.length - 1 ? 'Completar' : 'Siguiente →'}
+              </button>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Completion Celebration Overlay */}
+      {justCompleted !== null && (
+        <CompletionCelebration
+          progress={progress}
+          currentStep={justCompleted}
+          onDismiss={() => setJustCompleted(null)}
+        />
+      )}
     </div>
   )
 }
 
 // Componente para renderizar módulos específicos
-function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUpload, isSaving, clientData, onStartOnboarding, progress, onBackToWelcome, clientId }) {
+function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUpload, isSaving, clientData, onStartOnboarding, progress, currentStep, onBackToWelcome, clientId }) {
   switch (module.id) {
     case 'welcome':
-      return <WelcomeModule clientData={clientData} onStartOnboarding={onStartOnboarding} progress={progress} />
+      return <WelcomeModule clientData={clientData} onStartOnboarding={onStartOnboarding} progress={progress} currentStep={currentStep} />
     case 'info_basica':
       return <BasicInfoModule data={data} onChange={onDataChange} onInputChange={onInputChange} />
     case 'servicio_principal':
@@ -466,9 +479,10 @@ function ModuleRenderer({ module, data, onDataChange, onInputChange, onFileUploa
 }
 
 // Módulos individuales
-function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
+function WelcomeModule({ clientData, onStartOnboarding, progress = 0, currentStep = 0 }) {
   const companyName = clientData?.nombre_empresa || clientData?.nombre_comercial || ''
   const videoUrl = 'https://www.youtube.com/embed/15cEtTMmvJk'
+  const logoUrl = new URL('../assets/images/logo-alphalux.png', import.meta.url).href
 
   const roadmapStages = [
     { num: 1, icon: '🏢', name: 'Empresa',    desc: 'Datos básicos' },
@@ -485,8 +499,9 @@ function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
 
   return (
     <div className="welcome-screen">
+      {/* Hero — full width, always centered */}
       <div className="welcome-hero">
-        <Logo />
+        <img src={logoUrl} alt="Alphalux" className="welcome-logo" />
         {companyName && (
           <p className="welcome-company-name">— {companyName} —</p>
         )}
@@ -502,7 +517,7 @@ function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
 
       <div className="welcome-video-wrap">
         <p className="welcome-video-label">Mensaje del equipo Alphalux</p>
-        <div className="video-container">
+        <div className="welcome-video-container">
           <iframe
             src={videoUrl}
             title="Bienvenida Alphalux"
@@ -515,44 +530,69 @@ function WelcomeModule({ clientData, onStartOnboarding, progress = 0 }) {
 
       <div className="welcome-meta-strip">
         <div className="welcome-meta-item">
+          <span className="welcome-meta-icon">📋</span>
           <span className="welcome-meta-val">10</span>
           <span className="welcome-meta-lbl">etapas</span>
         </div>
         <div className="welcome-meta-sep" />
         <div className="welcome-meta-item">
+          <span className="welcome-meta-icon">⏱️</span>
           <span className="welcome-meta-val">~30</span>
           <span className="welcome-meta-lbl">minutos</span>
         </div>
         <div className="welcome-meta-sep" />
         <div className="welcome-meta-item">
+          <span className="welcome-meta-icon">💾</span>
           <span className="welcome-meta-val">Auto</span>
           <span className="welcome-meta-lbl">guardado</span>
         </div>
       </div>
 
       <div className="welcome-roadmap">
-        <h3 className="welcome-roadmap-title">Tu hoja de ruta</h3>
+        <h3 className="welcome-roadmap-title"><span>Tu hoja de ruta</span></h3>
         <div className="welcome-stages-grid">
-          {roadmapStages.map(stage => (
-            <div key={stage.num} className="welcome-stage-card">
-              <span className="welcome-stage-num">{stage.num}</span>
-              <span className="welcome-stage-icon">{stage.icon}</span>
-              <span className="welcome-stage-name">{stage.name}</span>
-              <span className="welcome-stage-desc">{stage.desc}</span>
-            </div>
-          ))}
+          {roadmapStages.map(stage => {
+            const moduleData = clientData[MODULES[stage.num - 1]?.id] || {}
+            const isCompleted = Object.keys(moduleData).length > 0
+            const isCurrentStage = currentStep === stage.num
+            const stateClass = isCurrentStage ? 'welcome-stage-card--in-progress' : isCompleted ? 'welcome-stage-card--completed' : progress > 0 && !isCompleted && currentStep < stage.num ? 'welcome-stage-card--locked' : ''
+
+            return (
+              <div key={stage.num} className={`welcome-stage-card ${stateClass}`}>
+                {isCompleted && <span className="welcome-stage-overlay">✓</span>}
+                {!isCompleted && progress > 0 && currentStep < stage.num && <span className="welcome-stage-overlay">🔒</span>}
+                <span className="welcome-stage-num">{stage.num}</span>
+                <span className="welcome-stage-icon">{stage.icon}</span>
+                <span className="welcome-stage-name">{stage.name}</span>
+                <span className="welcome-stage-desc">{stage.desc}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
 
+      {/* Progress bar — full width, only for returning users */}
       {progress > 0 && (
         <div className="welcome-progress-returning">
+          <div className="welcome-progress-header">
+            <p className="welcome-progress-message">
+              {progress <= 20 && '¡Has comenzado! 🎯'}
+              {progress > 20 && progress <= 40 && 'Buen progreso 💪'}
+              {progress > 40 && progress <= 60 && '¡Ya por la mitad! 🚀'}
+              {progress > 60 && progress <= 80 && '¡Casi listo! ✨'}
+              {progress > 80 && progress < 100 && '¡Casi completado! 🎉'}
+              {progress === 100 && '¡Has completado todo! 🌟'}
+            </p>
+            <span className="welcome-progress-percent">{progress}%</span>
+          </div>
           <div className="welcome-progress-track">
             <div className="welcome-progress-fill" style={{ width: `${progress}%` }} />
           </div>
-          <p className="welcome-progress-text">Progreso guardado: <strong>{progress}%</strong></p>
+          <p className="welcome-progress-text">Módulos completados: {progress / 10} de 10</p>
         </div>
       )}
 
+      {/* CTA — full width, centered */}
       <div className="welcome-cta-section">
         <button className="welcome-start-btn" onClick={onStartOnboarding}>
           {progress > 0 ? 'Continuar Onboarding →' : 'Comenzar Ahora →'}

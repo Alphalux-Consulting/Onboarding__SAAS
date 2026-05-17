@@ -16,7 +16,6 @@ import {
   getGoogleSheetsImportInstructions
 } from '../services/googleSheetsSync'
 import LoadingScreen from '../components/LoadingScreen'
-import Logo from '../components/Logo'
 import StatusBadge from '../components/StatusBadge'
 import ProgressIndicator from '../components/ProgressIndicator'
 import ClientCard from '../components/ClientCard'
@@ -27,6 +26,7 @@ import './pages.css'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
+  const logoUrl = new URL('../assets/images/logo-alphalux.png', import.meta.url).href
   const [user, setUser] = useState(null)
   const [clients, setClients] = useState([])
   const [tokens, setTokens] = useState({})
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="admin-dashboard-header">
         <div className="admin-header-logo">
-          <Logo />
+          <img src={logoUrl} alt="Alphalux" />
         </div>
         <div className="admin-header-right">
           <div className="admin-header-user">
@@ -434,16 +434,19 @@ export default function AdminDashboard() {
                   total: clients.length,
                   no_iniciado: clients.filter(c => c.estado_cliente === 'no_iniciado').length,
                   en_proceso: clients.filter(c => c.estado_cliente === 'en_proceso').length,
-                  completado: clients.filter(c => c.estado_cliente === 'completado').length
+                  completado: clients.filter(c => c.estado_cliente === 'completado').length,
+                  necesita_ayuda: clients.filter(c => c.google?.entorno_google_help === true).length
                 }}
               />
             </div>
 
             <ClientCardGrid isEmpty={clients.length === 0}>
               {clients
-                .filter(client =>
-                  statusFilter === 'all' || client.estado_cliente === statusFilter
-                )
+                .filter(client => {
+                  if (statusFilter === 'all') return true
+                  if (statusFilter === 'necesita_ayuda') return client.google?.entorno_google_help === true
+                  return client.estado_cliente === statusFilter
+                })
                 .map(client => (
                   <ClientCard
                     key={client.id}
@@ -468,23 +471,38 @@ export default function AdminDashboard() {
               <div className="analytics-card">
                 <h3>Total de Clientes</h3>
                 <p className="analytics-number">{clients.length}</p>
+                <p className="analytics-subtitle">Todos los clientes registrados</p>
               </div>
 
-              <div className="analytics-card">
-                <h3>Clientes Completados</h3>
+              <div className="analytics-card analytics-card--completed">
+                <h3>Completados</h3>
                 <p className="analytics-number">
                   {clients.filter(c => c.estado_cliente === 'completado').length}
                 </p>
+                <p className="analytics-subtitle">
+                  {clients.length > 0 ? (((clients.filter(c => c.estado_cliente === 'completado').length / clients.length) * 100).toFixed(1)) : 0}% del total
+                </p>
               </div>
 
-              <div className="analytics-card">
+              <div className="analytics-card analytics-card--progress">
                 <h3>En Proceso</h3>
                 <p className="analytics-number">
                   {clients.filter(c => c.estado_cliente === 'en_proceso').length}
                 </p>
+                <p className="analytics-subtitle">
+                  {clients.length > 0 ? (((clients.filter(c => c.estado_cliente === 'en_proceso').length / clients.length) * 100).toFixed(1)) : 0}% del total
+                </p>
               </div>
 
-              <div className="analytics-card">
+              <div className="analytics-card analytics-card--help">
+                <h3>Necesita Ayuda</h3>
+                <p className="analytics-number">
+                  {clients.filter(c => c.google?.entorno_google_help === true).length}
+                </p>
+                <p className="analytics-subtitle">Requieren soporte setup</p>
+              </div>
+
+              <div className="analytics-card analytics-card--progress-avg">
                 <h3>Progreso Promedio</h3>
                 <p className="analytics-number">
                   {clients.length > 0
@@ -494,25 +512,58 @@ export default function AdminDashboard() {
                     : 0}
                   %
                 </p>
+                <p className="analytics-subtitle">De todos los clientes</p>
               </div>
             </div>
 
             <div className="analytics-section">
-              <h3>Distribución por Estado (Cliente)</h3>
+              <h3>Distribución por Estado</h3>
               <div className="status-distribution">
-                {['no_iniciado', 'en_proceso', 'completado'].map(status => {
-                  const count = clients.filter(c => c.estado_cliente === status).length
+                {[
+                  { key: 'no_iniciado', label: 'No Iniciado', color: '#ff6b6b' },
+                  { key: 'en_proceso', label: 'En Proceso', color: '#d4af37' },
+                  { key: 'completado', label: 'Completado', color: '#22c55e' }
+                ].map(status => {
+                  const count = clients.filter(c => c.estado_cliente === status.key).length
                   const percentage = clients.length > 0 ? (count / clients.length) * 100 : 0
                   return (
-                    <div key={status} className="distribution-item">
-                      <span className="status-label">{status}</span>
+                    <div key={status.key} className="distribution-item">
+                      <span className="status-label">{status.label}</span>
                       <div className="distribution-bar">
                         <div
                           className="distribution-fill"
-                          style={{ width: `${percentage}%` }}
+                          style={{ width: `${percentage}%`, background: status.color }}
                         ></div>
                       </div>
                       <span className="distribution-value">{count} ({percentage.toFixed(1)}%)</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="analytics-section">
+              <h3>Estado de Ayuda Requerida</h3>
+              <div className="status-distribution">
+                {[
+                  { key: 'ayuda', label: 'Requieren Ayuda', count: clients.filter(c => c.google?.entorno_google_help === true).length },
+                  { key: 'no_ayuda', label: 'Configurado', count: clients.filter(c => c.google?.entorno_google_help === false).length },
+                  { key: 'indeciso', label: 'No Decidido', count: clients.filter(c => c.google?.entorno_google_help === null || c.google?.entorno_google_help === undefined).length }
+                ].map(item => {
+                  const percentage = clients.length > 0 ? (item.count / clients.length) * 100 : 0
+                  return (
+                    <div key={item.key} className="distribution-item">
+                      <span className="status-label">{item.label}</span>
+                      <div className="distribution-bar">
+                        <div
+                          className="distribution-fill"
+                          style={{
+                            width: `${percentage}%`,
+                            background: item.key === 'ayuda' ? '#ff6b6b' : item.key === 'no_ayuda' ? '#22c55e' : '#d4af37'
+                          }}
+                        ></div>
+                      </div>
+                      <span className="distribution-value">{item.count} ({percentage.toFixed(1)}%)</span>
                     </div>
                   )
                 })}

@@ -9,6 +9,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const logoUrl = new URL('../assets/images/logo-alphalux.png', import.meta.url).href
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -59,7 +60,16 @@ export default function AdminLogin() {
       <div className="admin-login-form-container">
         <form className="admin-login-form" onSubmit={handleSubmit}>
           <div className="admin-login-header">
-            <h1>Acceso Admin</h1>
+            <div className="admin-login-logo-section">
+              <img src={logoUrl} alt="Alphalux" className="admin-login-logo" />
+              <div className="admin-login-user-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M 4 20 Q 4 14 12 14 Q 20 14 20 20" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                </svg>
+              </div>
+            </div>
+            <h2 className="admin-login-title">Panel Administrativo</h2>
             <p>Ingresa tus credenciales para acceder al panel de administración</p>
           </div>
 

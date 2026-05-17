@@ -48,7 +48,8 @@ export async function updateClientData(clientId, data) {
       lastEditedAt: Timestamp.fromDate(new Date())
     }
 
-    await updateDoc(doc(db, 'clientes', clientId), updateData)
+    // Use setDoc with merge to create if not exists, update if exists
+    await setDoc(doc(db, 'clientes', clientId), updateData, { merge: true })
 
     return {
       success: true,
@@ -76,7 +77,8 @@ export async function saveClientModule(clientId, moduleName, moduleData) {
       lastEditedAt: Timestamp.fromDate(new Date())
     }
 
-    await updateDoc(doc(db, 'clientes', clientId), updateData)
+    // Use setDoc with merge to create if not exists, update if exists
+    await setDoc(doc(db, 'clientes', clientId), updateData, { merge: true })
 
     return {
       success: true,
@@ -119,11 +121,11 @@ export async function calculateProgress(clientId) {
 
     const progress = Math.round((completedModules / modules.length) * 100)
 
-    // Actualizar progreso
-    await updateDoc(doc(db, 'clientes', clientId), {
+    // Actualizar progreso - use setDoc with merge for robustness
+    await setDoc(doc(db, 'clientes', clientId), {
       progreso: progress,
       updatedAt: Timestamp.fromDate(new Date())
-    })
+    }, { merge: true })
 
     return progress
   } catch (error) {

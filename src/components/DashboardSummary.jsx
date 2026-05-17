@@ -3,6 +3,7 @@ export default function DashboardSummary({ clients = [] }) {
     total: clients.length,
     active: clients.filter(c => c.estado_cliente !== 'no_iniciado').length,
     completed: clients.filter(c => c.estado_cliente === 'completado').length,
+    needsHelp: clients.filter(c => c.google?.entorno_google_help === true).length,
     avgProgress:
       clients.length > 0
         ? Math.round(
@@ -15,7 +16,7 @@ export default function DashboardSummary({ clients = [] }) {
     { label: 'Total Clientes', value: metrics.total, type: 'total', symbol: '◈' },
     { label: 'Clientes Activos', value: metrics.active, type: 'active', symbol: '◉' },
     { label: 'Completados', value: metrics.completed, type: 'completed', symbol: '◎' },
-    { label: 'Progreso Promedio', value: `${metrics.avgProgress}%`, type: 'progress', symbol: '◈' }
+    { label: 'Necesita Ayuda', value: metrics.needsHelp, type: 'needs-help', symbol: '⚠' }
   ]
 
   return (
